@@ -1,6 +1,8 @@
-package openapi
+package merge
 
 import (
+	"fmt"
+
 	"github.com/MarkRosemaker/openapi"
 )
 
@@ -241,7 +243,7 @@ func Schema(a, b *openapi.Schema) error {
 	// 	}}
 	// }
 
-	return nil
+	return fmt.Errorf("unimplemented")
 }
 
 // func (l *loader) resolveSchema(s *Schema) error {
