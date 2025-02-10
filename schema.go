@@ -2,12 +2,91 @@ package merge
 
 import (
 	"fmt"
+	"slices"
 
+	"github.com/MarkRosemaker/errpath"
 	"github.com/MarkRosemaker/openapi"
+	"github.com/go-json-experiment/json"
+	"github.com/go-json-experiment/json/jsontext"
 )
 
 func Schema(a, b *openapi.Schema) error {
-	// s.Description = strings.TrimSpace(s.Description)
+	a.Title = mergeString(a.Title, b.Title)
+	a.Description = mergeString(a.Description, b.Description)
+
+	if a.Example == nil {
+		a.Example = b.Example
+	}
+
+	switch a.Type {
+	case openapi.TypeString:
+		switch b.Type {
+		case openapi.TypeString:
+			if a.Enum != nil && b.Example != nil {
+				ex := ""
+				if err := json.Unmarshal(b.Example, &ex); err != nil {
+					return &errpath.ErrField{Field: "example", Err: err}
+				}
+
+				if !slices.Contains(a.Enum, ex) {
+					a.Enum = append(a.Enum, ex)
+				}
+			}
+		case openapi.TypeObject:
+			if !isNull(b.Example) || b.AdditionalProperties != nil ||
+				len(b.Properties) > 0 {
+				return errTp(a, b)
+			} // else: b is a string that got null'ed
+			// TODO: a.Nullable = true
+		default:
+			return errTp(a, b)
+		}
+	case openapi.TypeObject:
+		switch b.Type {
+		case openapi.TypeObject:
+			if a.AdditionalProperties != nil {
+				// is a string map
+				if b.AdditionalProperties != nil {
+					if err := Schema(a.AdditionalProperties.Value, b.AdditionalProperties.Value); err != nil {
+						return &errpath.ErrField{Field: "additionalProperties", Err: err}
+					}
+				}
+
+				// merge all property values with prop
+				for _, prop := range b.Properties {
+					if err := Schema(a.AdditionalProperties.Value, prop.Value); err != nil {
+						return &errpath.ErrField{Field: "additionalProperties", Err: err}
+					}
+				}
+			} else if a.Properties == nil {
+				a.Properties = b.Properties // simply set the properties
+			} else {
+				for k, propB := range b.Properties.ByIndex() {
+					propA, ok := a.Properties[k]
+					if !ok {
+						a.Properties.Set(k, propB) // add the property
+						continue
+					}
+
+					// merge the properties
+					if err := Schema(propA.Value, propB.Value); err != nil {
+						return err
+					}
+				}
+			}
+		default:
+			return errTp(a, b)
+		}
+	default:
+		return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q unimplemented", a.Type)}
+	}
+
+	if a.Format != b.Format && !isNull(b.Example) {
+		jsonPrint("a", a)
+		jsonPrint("b", b)
+
+		return &errpath.ErrField{Field: "format", Err: fmt.Errorf("%q != %q", a.Format, b.Format)}
+	}
 
 	// if s.Type == "" {
 	// 	if len(s.AllOf) == 0 {
@@ -243,7 +322,23 @@ func Schema(a, b *openapi.Schema) error {
 	// 	}}
 	// }
 
-	return fmt.Errorf("unimplemented")
+	return nil
+}
+
+func errTp(a, b *openapi.Schema) error {
+	jsonPrint("a", a)
+	jsonPrint("b", b)
+
+	return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q != %q", a.Type, b.Type)}
+}
+
+func jsonPrint(name string, s *openapi.Schema) {
+	data, _ := json.Marshal(s)
+	fmt.Printf("%s: %s\n", name, string(data))
+}
+
+func isNull(j jsontext.Value) bool {
+	return string(j) == jsontext.Null.String()
 }
 
 // func (l *loader) resolveSchema(s *Schema) error {
