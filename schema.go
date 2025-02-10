@@ -18,89 +18,78 @@ func Schema(a, b *openapi.Schema) error {
 		a.Example = b.Example
 	}
 
-	switch a.Type {
-	case openapi.TypeString:
-		switch b.Type {
-		case openapi.TypeString:
-			if a.Enum != nil && b.Example != nil {
-				ex := ""
-				if err := json.Unmarshal(b.Example, &ex); err != nil {
-					return &errpath.ErrField{Field: "example", Err: err}
-				}
-
-				if !slices.Contains(a.Enum, ex) {
-					a.Enum = append(a.Enum, ex)
-				}
-			}
-		case openapi.TypeObject:
-			if !isNull(b.Example) || b.AdditionalProperties != nil ||
-				len(b.Properties) > 0 {
-				return errTp(a, b)
-			} // else: b is a string that got null'ed
-			// TODO: a.Nullable = true
-		default:
-			return errTp(a, b)
-		}
-	case openapi.TypeObject:
-		switch b.Type {
-		case openapi.TypeObject:
-			if a.AdditionalProperties != nil {
-				// is a string map
-				if b.AdditionalProperties != nil {
-					if err := Schema(a.AdditionalProperties.Value, b.AdditionalProperties.Value); err != nil {
-						return &errpath.ErrField{Field: "additionalProperties", Err: err}
-					}
-				}
-
-				// merge all property values with prop
-				for _, prop := range b.Properties {
-					if err := Schema(a.AdditionalProperties.Value, prop.Value); err != nil {
-						return &errpath.ErrField{Field: "additionalProperties", Err: err}
-					}
-				}
-			} else if a.Properties == nil {
-				a.Properties = b.Properties // simply set the properties
-			} else {
-				for k, propB := range b.Properties.ByIndex() {
-					propA, ok := a.Properties[k]
-					if !ok {
-						a.Properties.Set(k, propB) // add the property
-						continue
-					}
-
-					// merge the properties
-					if err := Schema(propA.Value, propB.Value); err != nil {
-						return err
-					}
-				}
-			}
-		default:
-			return errTp(a, b)
-		}
-	default:
-		return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q unimplemented", a.Type)}
+	if isNull(b.Example) && b.AdditionalProperties == nil &&
+		b.Properties == nil {
+		// else: b is a string or other type that got null'ed
+		b.Type = a.Type
+		b.Format = a.Format
+		// TODO: a.Nullable = true
 	}
 
-	if a.Format != b.Format && !isNull(b.Example) {
+	if a.Type != b.Type {
+		jsonPrint("a", a)
+		jsonPrint("b", b)
+
+		return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q != %q", a.Type, b.Type)}
+	}
+
+	if a.Format != b.Format {
 		jsonPrint("a", a)
 		jsonPrint("b", b)
 
 		return &errpath.ErrField{Field: "format", Err: fmt.Errorf("%q != %q", a.Format, b.Format)}
 	}
 
-	// if s.Type == "" {
-	// 	if len(s.AllOf) == 0 {
-	// 		return &errpath.ErrField{Field: "type", Err: &errpath.ErrRequired{}}
-	// 	}
-	// } else if err := s.Type.Validate(); err != nil {
-	// 	return &errpath.ErrField{Field: "type", Err: err}
-	// }
+	switch a.Type {
+	case openapi.TypeString:
+		if a.Enum != nil && b.Example != nil {
+			ex := ""
+			if err := json.Unmarshal(b.Example, &ex); err != nil {
+				return &errpath.ErrField{Field: "example", Err: err}
+			}
 
-	// if s.Format != "" {
-	// 	if err := s.Format.Validate(); err != nil {
-	// 		return &errpath.ErrField{Field: "format", Err: err}
-	// 	}
-	// }
+			if !slices.Contains(a.Enum, ex) {
+				a.Enum = append(a.Enum, ex)
+			}
+		}
+	case openapi.TypeObject:
+		if a.AdditionalProperties != nil {
+			// is a string map
+			if b.AdditionalProperties != nil {
+				if err := Schema(a.AdditionalProperties.Value, b.AdditionalProperties.Value); err != nil {
+					return &errpath.ErrField{Field: "additionalProperties", Err: err}
+				}
+			}
+
+			// merge all property values with prop
+			for _, prop := range b.Properties {
+				if err := Schema(a.AdditionalProperties.Value, prop.Value); err != nil {
+					return &errpath.ErrField{Field: "additionalProperties", Err: err}
+				}
+			}
+		} else if a.Properties == nil {
+			a.Properties = b.Properties // simply set the properties
+		} else {
+			for k, propB := range b.Properties.ByIndex() {
+				propA, ok := a.Properties[k]
+				if !ok {
+					a.Properties.Set(k, propB) // add the property
+					continue
+				}
+
+				// merge the properties
+				if err := Schema(propA.Value, propB.Value); err != nil {
+					return err
+				}
+			}
+		}
+	default:
+		return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q unimplemented", a.Type)}
+	}
+
+	if len(a.AllOf) > 0 {
+		return &errpath.ErrField{Field: "allOf", Err: fmt.Errorf("not implemented")}
+	}
 
 	// // validate if format is valid for type
 	// switch s.Format {
@@ -323,13 +312,6 @@ func Schema(a, b *openapi.Schema) error {
 	// }
 
 	return nil
-}
-
-func errTp(a, b *openapi.Schema) error {
-	jsonPrint("a", a)
-	jsonPrint("b", b)
-
-	return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q != %q", a.Type, b.Type)}
 }
 
 func jsonPrint(name string, s *openapi.Schema) {
