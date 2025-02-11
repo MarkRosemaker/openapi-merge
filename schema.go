@@ -83,7 +83,11 @@ func Schema(a, b *openapi.Schema) error {
 				}
 			}
 		}
+	case openapi.TypeBoolean: // nothing to do
 	default:
+		jsonPrint("a", a)
+		jsonPrint("b", b)
+
 		return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q unimplemented", a.Type)}
 	}
 

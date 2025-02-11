@@ -120,6 +120,22 @@ func TestSchema(t *testing.T) {
 			},
 			Example: jsontext.Value(`{"type":"text","text":{"content":"This is a simple paragraph.","link":null},"annotations":{"bold":false,"italic":false,"strikethrough":false,"underline":false,"code":false,"color":"default"},"plain_text":"This is a simple paragraph.","href":null}`),
 		}},
+		{
+			&openapi.Schema{
+				Description: "The archived status of the page.",
+				Type:        openapi.TypeBoolean,
+				Example:     jsontext.Value(`false`),
+			},
+			&openapi.Schema{
+				Type:    openapi.TypeBoolean,
+				Example: jsontext.Value(`true`),
+			},
+			&openapi.Schema{
+				Description: "The archived status of the page.",
+				Type:        openapi.TypeBoolean,
+				Example:     jsontext.Value(`false`),
+			},
+		},
 	} {
 		require.NoError(t, merge.Schema(tc.a, tc.b))
 		require.Equal(t, tc.want, tc.a)
