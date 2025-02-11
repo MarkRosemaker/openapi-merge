@@ -69,22 +69,17 @@ func Schema(a, b *openapi.Schema) error {
 				}
 			}
 		} else if a.Properties == nil {
+			jsonPrint("a", a)
+			jsonPrint("b", b)
+			return fmt.Errorf("a.Properties == nil")
 			a.Properties = b.Properties // simply set the properties
 		} else {
-			for k, propB := range b.Properties.ByIndex() {
-				propA, ok := a.Properties[k]
-				if !ok {
-					a.Properties.Set(k, propB) // add the property
-					continue
-				}
-
-				// merge the properties
-				if err := Schema(propA.Value, propB.Value); err != nil {
-					return err
-				}
+			if err := SchemaRefs(a.Properties, b.Properties); err != nil {
+				return &errpath.ErrField{Field: "properties", Err: err}
 			}
 		}
 	case openapi.TypeBoolean: // nothing to do
+	case openapi.TypeInteger: // nothing to do
 	case openapi.TypeArray:
 		if err := Schema(a.Items.Value, b.Items.Value); err != nil {
 			return err
