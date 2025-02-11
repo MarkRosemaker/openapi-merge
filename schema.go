@@ -42,6 +42,7 @@ func Schema(a, b *openapi.Schema) error {
 
 	switch a.Type {
 	case openapi.TypeString:
+		// add the example from b to the enums of a
 		if a.Enum != nil && b.Example != nil {
 			ex := ""
 			if err := json.Unmarshal(b.Example, &ex); err != nil {
@@ -84,6 +85,10 @@ func Schema(a, b *openapi.Schema) error {
 			}
 		}
 	case openapi.TypeBoolean: // nothing to do
+	case openapi.TypeArray:
+		if err := Schema(a.Items.Value, b.Items.Value); err != nil {
+			return err
+		}
 	default:
 		jsonPrint("a", a)
 		jsonPrint("b", b)

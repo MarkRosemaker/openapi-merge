@@ -136,6 +136,65 @@ func TestSchema(t *testing.T) {
 				Example:     jsontext.Value(`false`),
 			},
 		},
+		{
+			&openapi.Schema{
+				Type: openapi.TypeArray,
+				Items: &openapi.SchemaRef{
+					Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props(
+							"type", &openapi.Schema{
+								Type:    openapi.TypeString,
+								Example: jsontext.Value(`"foo"`),
+								Enum:    []string{"foo"},
+							},
+							"foo", &openapi.Schema{
+								Type:    openapi.TypeBoolean,
+								Example: jsontext.Value("true"),
+							}),
+					},
+				},
+			},
+			&openapi.Schema{
+				Type: openapi.TypeArray,
+				Items: &openapi.SchemaRef{
+					Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props(
+							"type", &openapi.Schema{
+								Type:    openapi.TypeString,
+								Example: jsontext.Value(`"bar"`),
+							},
+							"bar", &openapi.Schema{
+								Type:    openapi.TypeBoolean,
+								Example: jsontext.Value("true"),
+							}),
+					},
+				},
+			},
+			&openapi.Schema{
+				Type: openapi.TypeArray,
+				Items: &openapi.SchemaRef{
+					Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props(
+							"type", &openapi.Schema{
+								Type:    openapi.TypeString,
+								Example: jsontext.Value(`"foo"`),
+								Enum:    []string{"foo", "bar"},
+							},
+							"foo", &openapi.Schema{
+								Type:    openapi.TypeBoolean,
+								Example: jsontext.Value("true"),
+							},
+							"bar", &openapi.Schema{
+								Type:    openapi.TypeBoolean,
+								Example: jsontext.Value("true"),
+							}),
+					},
+				},
+			},
+		},
 	} {
 		require.NoError(t, merge.Schema(tc.a, tc.b))
 		require.Equal(t, tc.want, tc.a)
@@ -156,4 +215,16 @@ func TestSchema_Error(t *testing.T) {
 		require.Error(t, err)
 		require.Equal(t, tc.err, err.Error())
 	}
+}
+
+func props(keyVals ...any) openapi.SchemaRefs {
+	p := openapi.SchemaRefs{}
+
+	for i := 0; i < len(keyVals); i = i + 2 {
+		p.Set(keyVals[i].(string), &openapi.SchemaRef{
+			Value: keyVals[i+1].(*openapi.Schema),
+		})
+	}
+
+	return p
 }
