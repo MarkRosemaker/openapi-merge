@@ -11,6 +11,9 @@ import (
 )
 
 func Schema(a, b *openapi.Schema) error {
+	aString, _ := json.Marshal(a)
+	bString, _ := json.Marshal(b)
+
 	// merge the title and description
 	a.Title = mergeString(a.Title, b.Title)
 	a.Description = mergeString(a.Description, b.Description)
@@ -38,16 +41,23 @@ func Schema(a, b *openapi.Schema) error {
 
 	// check that the types are the same
 	if a.Type != b.Type {
-		jsonPrint("a", a)
-		jsonPrint("b", b)
+		fmt.Printf("a: %s\n", string(aString))
+		fmt.Printf("b: %s\n", string(bString))
 
 		return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q != %q", a.Type, b.Type)}
 	}
 
+	// if one doesn't conform to the format,
+	// we cannot guarantee the format
+	if a.Format == "" || b.Format == "" {
+		a.Format = ""
+		b.Format = ""
+	}
+
 	// check that the formats are the same
 	if a.Format != b.Format {
-		jsonPrint("a", a)
-		jsonPrint("b", b)
+		fmt.Printf("a: %s\n", string(aString))
+		fmt.Printf("b: %s\n", string(bString))
 
 		return &errpath.ErrField{Field: "format", Err: fmt.Errorf("%q != %q", a.Format, b.Format)}
 	}
@@ -82,9 +92,6 @@ func Schema(a, b *openapi.Schema) error {
 				}
 			}
 		} else if a.Properties == nil {
-			jsonPrint("a", a)
-			jsonPrint("b", b)
-			return fmt.Errorf("a.Properties == nil")
 			a.Properties = b.Properties // simply set the properties
 		} else {
 			if err := SchemaRefs(a.Properties, b.Properties); err != nil {
@@ -98,8 +105,8 @@ func Schema(a, b *openapi.Schema) error {
 			return err
 		}
 	default:
-		jsonPrint("a", a)
-		jsonPrint("b", b)
+		fmt.Printf("a: %s\n", string(aString))
+		fmt.Printf("b: %s\n", string(bString))
 
 		return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q unimplemented", a.Type)}
 	}
@@ -329,11 +336,6 @@ func Schema(a, b *openapi.Schema) error {
 	// }
 
 	return nil
-}
-
-func jsonPrint(name string, s *openapi.Schema) {
-	data, _ := json.Marshal(s)
-	fmt.Printf("%s: %s\n", name, string(data))
 }
 
 var null = jsontext.Null.String()
