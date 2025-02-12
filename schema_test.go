@@ -236,9 +236,25 @@ func TestSchema(t *testing.T) {
 				Example: jsontext.Value(`"https://www.example.com/"`),
 			},
 		},
+		{
+			&openapi.Schema{
+				Type:    openapi.TypeString,
+				Example: jsontext.Value(`"some text"`),
+			},
+			&openapi.Schema{
+				Type:    openapi.TypeString,
+				Format:  openapi.FormatURI,
+				Example: jsontext.Value(`"https://www.example.com/"`),
+			},
+			&openapi.Schema{
+				Type:    openapi.TypeString,
+				Example: jsontext.Value(`"some text"`),
+			},
+		},
 	} {
 		require.NoError(t, merge.Schema(tc.a, tc.b))
 		require.Equal(t, tc.want, tc.a)
+		require.NoError(t, tc.a.Validate())
 	}
 }
 
