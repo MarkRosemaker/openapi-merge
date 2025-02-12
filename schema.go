@@ -11,21 +11,32 @@ import (
 )
 
 func Schema(a, b *openapi.Schema) error {
+	// merge the title and description
 	a.Title = mergeString(a.Title, b.Title)
 	a.Description = mergeString(a.Description, b.Description)
 
-	if a.Example == nil {
-		a.Example = b.Example
-	}
-
-	if isNull(b.Example) && b.AdditionalProperties == nil &&
-		b.Properties == nil {
-		// else: b is a string or other type that got null'ed
+	// if one was generated from null (meaning we had no info about its type),
+	// set the type and format of the other
+	if isGeneratedFromNull(b) {
 		b.Type = a.Type
 		b.Format = a.Format
 		// TODO: a.Nullable = true
+	} else if isGeneratedFromNull(a) {
+		a.Type = b.Type
+		a.Format = b.Format
+
+		if a.Type != openapi.TypeObject {
+			a.Properties = nil
+		}
 	}
 
+	// improve the example
+	if a.Example == nil ||
+		(string(a.Example) == null && b.Example != nil) {
+		a.Example = b.Example
+	}
+
+	// check that the types are the same
 	if a.Type != b.Type {
 		jsonPrint("a", a)
 		jsonPrint("b", b)
@@ -33,6 +44,7 @@ func Schema(a, b *openapi.Schema) error {
 		return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q != %q", a.Type, b.Type)}
 	}
 
+	// check that the formats are the same
 	if a.Format != b.Format {
 		jsonPrint("a", a)
 		jsonPrint("b", b)
@@ -40,6 +52,7 @@ func Schema(a, b *openapi.Schema) error {
 		return &errpath.ErrField{Field: "format", Err: fmt.Errorf("%q != %q", a.Format, b.Format)}
 	}
 
+	// merge according to type
 	switch a.Type {
 	case openapi.TypeString:
 		// add the example from b to the enums of a
@@ -323,8 +336,16 @@ func jsonPrint(name string, s *openapi.Schema) {
 	fmt.Printf("%s: %s\n", name, string(data))
 }
 
-func isNull(j jsontext.Value) bool {
-	return string(j) == jsontext.Null.String()
+var null = jsontext.Null.String()
+
+// isGeneratedFromNull checks whether the schema was generated from null
+// and we actually have no idea about the schema otherwise
+func isGeneratedFromNull(s *openapi.Schema) bool {
+	return string(s.Example) == null &&
+		s.Type == openapi.TypeObject &&
+		s.Format == "" &&
+		len(s.Properties) == 0 &&
+		s.AdditionalProperties == nil
 }
 
 // func (l *loader) resolveSchema(s *Schema) error {

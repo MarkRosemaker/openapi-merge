@@ -62,7 +62,7 @@ func TestSchema(t *testing.T) {
 								"url": &openapi.SchemaRef{Value: &openapi.Schema{
 									Type:    openapi.TypeString,
 									Format:  openapi.FormatURI,
-									Example: jsontext.Value(`"https://www.google.com/"`),
+									Example: jsontext.Value(`"https://www.example.com/"`),
 								}},
 							},
 						}},
@@ -72,7 +72,7 @@ func TestSchema(t *testing.T) {
 				}},
 
 				// a: {
-				// "properties":{"annotations":{"type":"object","properties":{"bold":{"type":"boolean","example":false},"italic":{"type":"boolean","example":false},"strikethrough":{"type":"boolean","example":false},"underline":{"type":"boolean","example":false},"code":{"type":"boolean","example":false},"color":{"type":"string","example":"default"}},"required":["bold","italic","strikethrough","underline","code","color"],"example":{"bold":false,"italic":false,"strikethrough":false,"underline":false,"code":false,"color":"default"}},"plain_text":{"type":"string","example":"This is a simple paragraph."},"href":{"type":"string","format":"uri","example":"https://www.google.com/"},"mention":{"type":"object","properties":{"type":{"type":"string","example":"link_mention"},"link_mention":{"type":"object","properties":{"href":{"type":"string","format":"uri","example":"https://example.com/"},"title":{"type":"string","example":"Example Domain"},"description":{"type":"string","example":"This domain is for use in illustrative examples in documents. You may use this\n    domain in literature without prior coordination or asking for permission."}},"required":["href","title","description"],"example":{"href":"https://example.com/","title":"Example Domain","description":"This domain is for use in illustrative examples in documents. You may use this\n    domain in literature without prior coordination or asking for permission."}},"database":{"type":"object","properties":{"id":{"type":"string","format":"uuid","example":"7a3c647e-4c1e-4c27-bf1d-cfb0105e55ce"}},"required":["id"],"example":{"id":"7a3c647e-4c1e-4c27-bf1d-cfb0105e55ce"}}},"required":["type","link_mention"],"example":{"type":"link_mention","link_mention":{"href":"https://example.com/","title":"Example Domain","description":"This domain is for use in illustrative examples in documents. You may use this\n    domain in literature without prior coordination or asking for permission."}}},"equation":{"type":"object","properties":{"expression":{"type":"string","example":"e^{\\pi i}+1=0"}},"required":["expression"],"example":{"expression":"e^{\\pi i}+1=0"}}}
+				// "properties":{"annotations":{"type":"object","properties":{"bold":{"type":"boolean","example":false},"italic":{"type":"boolean","example":false},"strikethrough":{"type":"boolean","example":false},"underline":{"type":"boolean","example":false},"code":{"type":"boolean","example":false},"color":{"type":"string","example":"default"}},"required":["bold","italic","strikethrough","underline","code","color"],"example":{"bold":false,"italic":false,"strikethrough":false,"underline":false,"code":false,"color":"default"}},"plain_text":{"type":"string","example":"This is a simple paragraph."},"href":{"type":"string","format":"uri","example":"https://www.example.com/"},"mention":{"type":"object","properties":{"type":{"type":"string","example":"link_mention"},"link_mention":{"type":"object","properties":{"href":{"type":"string","format":"uri","example":"https://example.com/"},"title":{"type":"string","example":"Example Domain"},"description":{"type":"string","example":"This domain is for use in illustrative examples in documents. You may use this\n    domain in literature without prior coordination or asking for permission."}},"required":["href","title","description"],"example":{"href":"https://example.com/","title":"Example Domain","description":"This domain is for use in illustrative examples in documents. You may use this\n    domain in literature without prior coordination or asking for permission."}},"database":{"type":"object","properties":{"id":{"type":"string","format":"uuid","example":"7a3c647e-4c1e-4c27-bf1d-cfb0105e55ce"}},"required":["id"],"example":{"id":"7a3c647e-4c1e-4c27-bf1d-cfb0105e55ce"}}},"required":["type","link_mention"],"example":{"type":"link_mention","link_mention":{"href":"https://example.com/","title":"Example Domain","description":"This domain is for use in illustrative examples in documents. You may use this\n    domain in literature without prior coordination or asking for permission."}}},"equation":{"type":"object","properties":{"expression":{"type":"string","example":"e^{\\pi i}+1=0"}},"required":["expression"],"example":{"expression":"e^{\\pi i}+1=0"}}}
 			},
 
 			Example: jsontext.Value(`{"type":"text","text":{"content":"This is a simple paragraph.","link":null},"annotations":{"bold":false,"italic":false,"strikethrough":false,"underline":false,"code":false,"color":"default"},"plain_text":"This is a simple paragraph.","href":null}`),
@@ -109,7 +109,7 @@ func TestSchema(t *testing.T) {
 								"url": &openapi.SchemaRef{Value: &openapi.Schema{
 									Type:    openapi.TypeString,
 									Format:  openapi.FormatURI,
-									Example: jsontext.Value(`"https://www.google.com/"`),
+									Example: jsontext.Value(`"https://www.example.com/"`),
 								}},
 							},
 						}},
@@ -195,9 +195,47 @@ func TestSchema(t *testing.T) {
 				},
 			},
 		},
-		{&openapi.Schema{Type: openapi.TypeInteger, Example: jsontext.Value("100")},
+		{
 			&openapi.Schema{Type: openapi.TypeInteger, Example: jsontext.Value("100")},
-			&openapi.Schema{Type: openapi.TypeInteger, Example: jsontext.Value("100")}},
+			&openapi.Schema{Type: openapi.TypeInteger, Example: jsontext.Value("100")},
+			&openapi.Schema{Type: openapi.TypeInteger, Example: jsontext.Value("100")},
+		},
+		{
+			&openapi.Schema{
+				Description: "a URL",
+				Type:        openapi.TypeString,
+				Format:      openapi.FormatURI,
+				Example:     jsontext.Value(`"https://www.example.com/"`),
+			},
+			&openapi.Schema{
+				Type:       openapi.TypeObject,
+				Properties: openapi.SchemaRefs{},
+				Example:    jsontext.Value("null"),
+			},
+			&openapi.Schema{
+				Description: "a URL",
+				Type:        openapi.TypeString,
+				Format:      openapi.FormatURI,
+				Example:     jsontext.Value(`"https://www.example.com/"`),
+			},
+		},
+		{
+			&openapi.Schema{
+				Type:       openapi.TypeObject,
+				Properties: openapi.SchemaRefs{},
+				Example:    jsontext.Value("null"),
+			},
+			&openapi.Schema{
+				Type:    openapi.TypeString,
+				Format:  openapi.FormatURI,
+				Example: jsontext.Value(`"https://www.example.com/"`),
+			},
+			&openapi.Schema{
+				Type:    openapi.TypeString,
+				Format:  openapi.FormatURI,
+				Example: jsontext.Value(`"https://www.example.com/"`),
+			},
+		},
 	} {
 		require.NoError(t, merge.Schema(tc.a, tc.b))
 		require.Equal(t, tc.want, tc.a)
