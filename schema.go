@@ -2,6 +2,7 @@ package merge
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 
 	"github.com/MarkRosemaker/errpath"
@@ -14,21 +15,61 @@ func Schema(a, b *openapi.Schema) error {
 	aString, _ := json.Marshal(a)
 	bString, _ := json.Marshal(b)
 
+	// if string(a.Example) == `"link_mention"` && a.Enum != nil &&
+	// 	string(b.Example) != `"link_mention"` {
+	// 	fmt.Printf("a: %s\n", string(aString))
+	// 	fmt.Printf("b: %s\n", string(bString))
+
+	// 	return fmt.Errorf("how to merge")
+	// }
+
 	// merge the title and description
 	a.Title = mergeString(a.Title, b.Title)
 	a.Description = mergeString(a.Description, b.Description)
 
+	tp := a.Type
+
+	if len(a.AllOf) > 0 {
+		if tp != "" && tp != openapi.TypeObject {
+			return fmt.Errorf("type %q with allOf not implemented yet", tp)
+		}
+
+		tp = a.AllOf[0].Value.Type
+
+		if tp != openapi.TypeObject {
+			return fmt.Errorf("allOf with type %q not implemented yet", tp)
+		}
+
+		idx := slices.IndexFunc(a.AllOf[1:], func(s *openapi.SchemaRef) bool {
+			return s.Value.Type != tp
+		})
+		if idx != -1 {
+			return &errpath.ErrField{
+				Field: "allOf",
+				Err: &errpath.ErrIndex{
+					Index: idx + 1,
+					Err: &errpath.ErrField{
+						Field: "type",
+						Err: fmt.Errorf("%q != %q",
+							a.AllOf[idx+1].Value.Type, tp),
+					},
+				},
+			}
+		}
+	}
+
 	// if one was generated from null (meaning we had no info about its type),
 	// set the type and format of the other
 	if isGeneratedFromNull(b) {
-		b.Type = a.Type
+		b.Type = tp
 		b.Format = a.Format
 		// TODO: a.Nullable = true
 	} else if isGeneratedFromNull(a) {
-		a.Type = b.Type
+		tp = b.Type
+		a.Type = tp
 		a.Format = b.Format
 
-		if a.Type != openapi.TypeObject {
+		if tp != openapi.TypeObject {
 			a.Properties = nil
 		}
 	}
@@ -40,11 +81,11 @@ func Schema(a, b *openapi.Schema) error {
 	}
 
 	// check that the types are the same
-	if a.Type != b.Type {
+	if tp != b.Type {
 		fmt.Printf("a: %s\n", string(aString))
 		fmt.Printf("b: %s\n", string(bString))
 
-		return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q != %q", a.Type, b.Type)}
+		return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q != %q", tp, b.Type)}
 	}
 
 	// if one doesn't conform to the format,
@@ -63,7 +104,7 @@ func Schema(a, b *openapi.Schema) error {
 	}
 
 	// merge according to type
-	switch a.Type {
+	switch tp {
 	case openapi.TypeString:
 		// add the example from b to the enums of a
 		if a.Enum != nil && b.Example != nil {
@@ -91,12 +132,38 @@ func Schema(a, b *openapi.Schema) error {
 					return &errpath.ErrField{Field: "additionalProperties", Err: err}
 				}
 			}
-		} else if a.Properties == nil {
-			a.Properties = b.Properties // simply set the properties
 		} else {
-			if err := SchemaRefs(a.Properties, b.Properties); err != nil {
-				return &errpath.ErrField{Field: "properties", Err: err}
+			// get the maps that contains all properties
+			allProps := maps.Clone(a.Properties)
+			for _, allOf := range a.AllOf {
+				for k, prop := range allOf.Value.Properties.ByIndex() {
+					allProps.Set(k, &openapi.SchemaRef{Value: prop.Value})
+				}
 			}
+
+			// get the map that we should add properties from b from
+			addNewProps := a.Properties
+			field := "properties"
+			if len(a.AllOf) > 0 {
+				field = "allOf"
+				addNewProps = openapi.SchemaRefs{}
+			}
+
+			if err := schemaRefs(allProps, addNewProps, b.Properties); err != nil {
+				return &errpath.ErrField{Field: field, Err: err}
+			}
+
+			if len(a.AllOf) > 0 && len(addNewProps) > 0 {
+				a.AllOf = append(a.AllOf, &openapi.SchemaRef{Value: &openapi.Schema{
+					Type:       openapi.TypeObject,
+					Properties: addNewProps,
+				}})
+			}
+		}
+
+		// remove properties if they are none
+		if len(a.Properties) == 0 {
+			a.Properties = nil
 		}
 	case openapi.TypeBoolean: // nothing to do
 	case openapi.TypeInteger: // nothing to do
@@ -108,11 +175,7 @@ func Schema(a, b *openapi.Schema) error {
 		fmt.Printf("a: %s\n", string(aString))
 		fmt.Printf("b: %s\n", string(bString))
 
-		return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q unimplemented", a.Type)}
-	}
-
-	if len(a.AllOf) > 0 {
-		return &errpath.ErrField{Field: "allOf", Err: fmt.Errorf("not implemented")}
+		return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q unimplemented", tp)}
 	}
 
 	// // validate if format is valid for type

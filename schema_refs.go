@@ -6,10 +6,14 @@ import (
 )
 
 func SchemaRefs(a, b openapi.SchemaRefs) error {
+	return schemaRefs(a, a, b)
+}
+
+func schemaRefs(aAll, aToSet, b openapi.SchemaRefs) error {
 	for keyB, sB := range b.ByIndex() {
-		sA, ok := a[keyB]
+		sA, ok := aAll[keyB]
 		if !ok {
-			a.Set(keyB, sB) // add the property
+			aToSet.Set(keyB, sB) // add the property
 			continue
 		}
 

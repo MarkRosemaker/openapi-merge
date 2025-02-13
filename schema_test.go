@@ -251,6 +251,132 @@ func TestSchema(t *testing.T) {
 				Example: jsontext.Value(`"some text"`),
 			},
 		},
+		{
+			&openapi.Schema{
+				AllOf: openapi.SchemaRefList{
+					&openapi.SchemaRef{Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props("foo", &openapi.Schema{
+							Type: openapi.TypeString,
+						}),
+					}},
+					&openapi.SchemaRef{Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props("bar", &openapi.Schema{
+							Type: openapi.TypeInteger,
+						}),
+					}},
+				},
+			},
+			&openapi.Schema{
+				Type: openapi.TypeObject,
+				Properties: props("bar", &openapi.Schema{
+					Type: openapi.TypeInteger,
+				}),
+			},
+			&openapi.Schema{
+				AllOf: openapi.SchemaRefList{
+					&openapi.SchemaRef{Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props("foo", &openapi.Schema{
+							Type: openapi.TypeString,
+						}),
+					}},
+					&openapi.SchemaRef{Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props("bar", &openapi.Schema{
+							Type: openapi.TypeInteger,
+						}),
+					}},
+				},
+			},
+		},
+		{
+			&openapi.Schema{
+				AllOf: openapi.SchemaRefList{
+					&openapi.SchemaRef{Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props("foo", &openapi.Schema{
+							Type: openapi.TypeString,
+						}),
+					}},
+					&openapi.SchemaRef{Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props("bar", &openapi.Schema{
+							Type: openapi.TypeInteger,
+						}),
+					}},
+				},
+			},
+			&openapi.Schema{
+				Type: openapi.TypeObject,
+				Properties: props("foo", &openapi.Schema{
+					Type: openapi.TypeString,
+				}),
+			},
+			&openapi.Schema{
+				AllOf: openapi.SchemaRefList{
+					&openapi.SchemaRef{Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props("foo", &openapi.Schema{
+							Type: openapi.TypeString,
+						}),
+					}},
+					&openapi.SchemaRef{Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props("bar", &openapi.Schema{
+							Type: openapi.TypeInteger,
+						}),
+					}},
+				},
+			},
+		},
+		{
+			&openapi.Schema{
+				AllOf: openapi.SchemaRefList{
+					&openapi.SchemaRef{Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props("foo", &openapi.Schema{
+							Type: openapi.TypeString,
+						}),
+					}},
+					&openapi.SchemaRef{Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props("bar", &openapi.Schema{
+							Type: openapi.TypeInteger,
+						}),
+					}},
+				},
+			},
+			&openapi.Schema{
+				Type: openapi.TypeObject,
+				Properties: props("baz", &openapi.Schema{
+					Type: openapi.TypeBoolean,
+				}),
+			},
+			&openapi.Schema{
+				AllOf: openapi.SchemaRefList{
+					&openapi.SchemaRef{Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props("foo", &openapi.Schema{
+							Type: openapi.TypeString,
+						}),
+					}},
+					&openapi.SchemaRef{Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props("bar", &openapi.Schema{
+							Type: openapi.TypeInteger,
+						}),
+					}},
+					&openapi.SchemaRef{Value: &openapi.Schema{
+						Type: openapi.TypeObject,
+						Properties: props("baz", &openapi.Schema{
+							Type: openapi.TypeBoolean,
+						}),
+					}},
+				},
+			},
+		},
 	} {
 		require.NoError(t, merge.Schema(tc.a, tc.b))
 		require.Equal(t, tc.want, tc.a)
