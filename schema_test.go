@@ -1,11 +1,11 @@
 package merge_test
 
 import (
+	"encoding/json/jsontext"
 	"testing"
 
 	"github.com/MarkRosemaker/openapi"
 	merge "github.com/MarkRosemaker/openapi-merge"
-	"github.com/go-json-experiment/json/jsontext"
 	"github.com/stretchr/testify/require"
 )
 

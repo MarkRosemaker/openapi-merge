@@ -1,14 +1,14 @@
 package merge
 
 import (
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"maps"
 	"slices"
 
 	"github.com/MarkRosemaker/errpath"
 	"github.com/MarkRosemaker/openapi"
-	"github.com/go-json-experiment/json"
-	"github.com/go-json-experiment/json/jsontext"
 )
 
 func Schema(a, b *openapi.Schema) error {
