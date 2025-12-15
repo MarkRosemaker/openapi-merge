@@ -91,8 +91,21 @@ func Schema(a, b *openapi.Schema) error {
 	// if one doesn't conform to the format,
 	// we cannot guarantee the format
 	if a.Format == "" || b.Format == "" {
-		a.Format = ""
-		b.Format = ""
+		if a.Type == openapi.TypeInteger {
+			// Except if one is a date or datetime, then we can transform the integer
+			if a.Format == openapi.FormatDate || a.Format == openapi.FormatDateTime {
+				b.Format = a.Format
+			} else if b.Format == openapi.FormatDate || b.Format == openapi.FormatDateTime {
+				a.Format = b.Format
+			} else {
+				a.Format = ""
+				b.Format = ""
+			}
+		} else {
+			a.Format = ""
+			b.Format = ""
+		}
+
 	}
 
 	// check that the formats are the same
@@ -167,6 +180,7 @@ func Schema(a, b *openapi.Schema) error {
 		}
 	case openapi.TypeBoolean: // nothing to do
 	case openapi.TypeInteger: // nothing to do
+	case openapi.TypeNumber: // nothing to do
 	case openapi.TypeArray:
 		if err := Schema(a.Items.Value, b.Items.Value); err != nil {
 			return err

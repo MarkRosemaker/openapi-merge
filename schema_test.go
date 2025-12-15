@@ -377,6 +377,20 @@ func TestSchema(t *testing.T) {
 				},
 			},
 		},
+
+		{
+			&openapi.Schema{
+				Type:   openapi.TypeInteger,
+				Format: openapi.FormatDate,
+			},
+			&openapi.Schema{
+				Type: openapi.TypeInteger,
+			},
+			&openapi.Schema{
+				Type:   openapi.TypeInteger,
+				Format: openapi.FormatDate,
+			},
+		},
 	} {
 		require.NoError(t, merge.Schema(tc.a, tc.b))
 		require.Equal(t, tc.want, tc.a)
