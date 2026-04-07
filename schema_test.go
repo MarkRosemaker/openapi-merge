@@ -392,7 +392,7 @@ func TestSchema(t *testing.T) {
 			},
 		},
 	} {
-		require.NoError(t, merge.Schema(tc.a, tc.b))
+		require.NoError(t, merge.Schema(tc.a, tc.b, false))
 		require.Equal(t, tc.want, tc.a)
 		require.NoError(t, tc.a.Validate())
 	}
@@ -408,7 +408,7 @@ func TestSchema_Error(t *testing.T) {
 		// {nil, nil, "schema a is nil"},
 		// {&openapi.Schema{}, nil, "schema b is nil"},
 	} {
-		err := merge.Schema(tc.a, tc.b)
+		err := merge.Schema(tc.a, tc.b, false)
 		require.Error(t, err)
 		require.Equal(t, tc.err, err.Error())
 	}

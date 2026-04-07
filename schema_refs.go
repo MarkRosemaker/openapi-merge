@@ -18,7 +18,7 @@ func schemaRefs(aAll, aToSet, b openapi.SchemaRefs) error {
 		}
 
 		// merge the properties
-		if err := Schema(sA.Value, sB.Value); err != nil {
+		if err := Schema(sA.Value, sB.Value, false); err != nil {
 			return &errpath.ErrKey{Key: keyB, Err: err}
 		}
 	}

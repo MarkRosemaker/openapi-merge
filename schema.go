@@ -11,7 +11,7 @@ import (
 	"github.com/MarkRosemaker/openapi"
 )
 
-func Schema(a, b *openapi.Schema) error {
+func Schema(a, b *openapi.Schema, isParam bool) error {
 	aString, _ := json.Marshal(a)
 	bString, _ := json.Marshal(b)
 
@@ -82,10 +82,47 @@ func Schema(a, b *openapi.Schema) error {
 
 	// check that the types are the same
 	if tp != b.Type {
-		fmt.Printf("a: %s\n", string(aString))
-		fmt.Printf("b: %s\n", string(bString))
+		if isParam && (a.Type == openapi.TypeArray || b.Type == openapi.TypeArray) {
+			if a.Type == openapi.TypeArray {
+				if err := Schema(a.Items.Value, b, false); err != nil {
+					return fmt.Errorf("item of param: %w", err)
+				}
 
-		return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q != %q", tp, b.Type)}
+				if a.Example != nil {
+					s := ""
+					if err := json.Unmarshal(a.Example, &s); err == nil {
+						a.Example = jsontext.Value(fmt.Sprintf("[%q]", s))
+					}
+				}
+
+				*b = *a
+			} else {
+				if err := Schema(a, b.Items.Value, false); err != nil {
+					return fmt.Errorf("item of param: %w", err)
+				}
+
+				fmt.Printf("b.Example: %v\n", b.Example)
+
+				if b.Example != nil {
+					s := ""
+					if err := json.Unmarshal(b.Example, &s); err == nil {
+						b.Example = jsontext.Value(fmt.Sprintf("[%q]", s))
+					}
+				}
+				*a = *b
+			}
+		} else if tp == openapi.TypeNumber && b.Type == openapi.TypeString && string(bString) == `{"type":"string","example":"Infinity"}` {
+			*b = *a
+			return nil
+		} else if b.Type == openapi.TypeNumber && tp == openapi.TypeString && string(aString) == `{"type":"string","example":"Infinity"}` {
+			*a = *b
+			return nil
+		} else {
+			fmt.Printf("a: %s\n", string(aString))
+			fmt.Printf("b: %s\n", string(bString))
+			return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q != %q", tp, b.Type)}
+		}
+
 	}
 
 	// if one doesn't conform to the format,
@@ -100,6 +137,16 @@ func Schema(a, b *openapi.Schema) error {
 			} else {
 				a.Format = ""
 				b.Format = ""
+			}
+		} else if a.Type == openapi.TypeNumber {
+			if a.Format != "" {
+				b.Format = a.Format
+			} else if b.Format != "" {
+				a.Format = b.Format
+			} else {
+				// If no indication given, default to double
+				a.Format = openapi.FormatDouble
+				b.Format = openapi.FormatDouble
 			}
 		} else {
 			a.Format = ""
@@ -134,14 +181,14 @@ func Schema(a, b *openapi.Schema) error {
 		if a.AdditionalProperties != nil {
 			// is a string map
 			if b.AdditionalProperties != nil {
-				if err := Schema(a.AdditionalProperties.Value, b.AdditionalProperties.Value); err != nil {
+				if err := Schema(a.AdditionalProperties.Value, b.AdditionalProperties.Value, false); err != nil {
 					return &errpath.ErrField{Field: "additionalProperties", Err: err}
 				}
 			}
 
 			// merge all property values with prop
 			for _, prop := range b.Properties {
-				if err := Schema(a.AdditionalProperties.Value, prop.Value); err != nil {
+				if err := Schema(a.AdditionalProperties.Value, prop.Value, false); err != nil {
 					return &errpath.ErrField{Field: "additionalProperties", Err: err}
 				}
 			}
@@ -182,7 +229,7 @@ func Schema(a, b *openapi.Schema) error {
 	case openapi.TypeInteger: // nothing to do
 	case openapi.TypeNumber: // nothing to do
 	case openapi.TypeArray:
-		if err := Schema(a.Items.Value, b.Items.Value); err != nil {
+		if err := Schema(a.Items.Value, b.Items.Value, false); err != nil {
 			return err
 		}
 	default:
