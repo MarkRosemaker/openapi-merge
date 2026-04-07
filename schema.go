@@ -111,11 +111,21 @@ func Schema(a, b *openapi.Schema, isParam bool) error {
 				}
 				*a = *b
 			}
-		} else if tp == openapi.TypeNumber && b.Type == openapi.TypeString && string(bString) == `{"type":"string","example":"Infinity"}` {
+		} else if (tp == openapi.TypeNumber && b.Type == openapi.TypeString && string(bString) == `{"type":"string","example":"Infinity"}`) ||
+			(b.Type == openapi.TypeNumber && tp == openapi.TypeString && string(bString) == `{"type":"number","format":"double","example":0.0}`) {
 			*b = *a
 			return nil
 		} else if b.Type == openapi.TypeNumber && tp == openapi.TypeString && string(aString) == `{"type":"string","example":"Infinity"}` {
 			*a = *b
+			return nil
+		} else if a.Type == openapi.TypeNumber && b.Type == openapi.TypeInteger {
+			*b = *a
+			return nil
+		} else if a.Type == openapi.TypeInteger && b.Type == openapi.TypeNumber {
+			*a = *b
+			return nil
+		} else if a.Type == openapi.TypeInteger && b.Type == openapi.TypeString {
+			*b = *a
 			return nil
 		} else {
 			fmt.Printf("a: %s\n", string(aString))
