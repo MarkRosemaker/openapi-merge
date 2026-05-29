@@ -141,7 +141,8 @@ func Schema(a, b *openapi.Schema, isParam bool) error {
 	// if one doesn't conform to the format,
 	// we cannot guarantee the format
 	if a.Format == "" || b.Format == "" {
-		if a.Type == openapi.TypeInteger {
+		switch a.Type {
+		case openapi.TypeInteger:
 			// Except if one is a date or datetime, then we can transform the integer
 			if a.Format == openapi.FormatDate || a.Format == openapi.FormatDateTime {
 				b.Format = a.Format
@@ -151,7 +152,7 @@ func Schema(a, b *openapi.Schema, isParam bool) error {
 				a.Format = ""
 				b.Format = ""
 			}
-		} else if a.Type == openapi.TypeNumber {
+		case openapi.TypeNumber:
 			if a.Format != "" {
 				b.Format = a.Format
 			} else if b.Format != "" {
@@ -161,7 +162,7 @@ func Schema(a, b *openapi.Schema, isParam bool) error {
 				a.Format = openapi.FormatDouble
 				b.Format = openapi.FormatDouble
 			}
-		} else {
+		default:
 			a.Format = ""
 			b.Format = ""
 		}
