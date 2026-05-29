@@ -1,6 +1,7 @@
 package merge
 
 import (
+	"cmp"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
@@ -249,6 +250,10 @@ func Schema(a, b *openapi.Schema, isParam bool) error {
 	case openapi.TypeInteger: // nothing to do
 	case openapi.TypeNumber: // nothing to do
 	case openapi.TypeArray:
+		// guard against nil pointer if a schema is invalid
+		a.Items = cmp.Or(a.Items, defaultSchemaRef())
+		b.Items = cmp.Or(b.Items, defaultSchemaRef())
+
 		if err := Schema(a.Items.Value, b.Items.Value, false); err != nil {
 			return err
 		}
@@ -480,6 +485,10 @@ func Schema(a, b *openapi.Schema, isParam bool) error {
 	// }
 
 	return nil
+}
+
+func defaultSchemaRef() *openapi.SchemaRef {
+	return &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeObject}}
 }
 
 var null = jsontext.Null.String()
