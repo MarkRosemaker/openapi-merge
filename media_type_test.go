@@ -6,7 +6,6 @@ import (
 
 	"github.com/MarkRosemaker/openapi"
 	merge "github.com/MarkRosemaker/openapi-merge"
-	"github.com/stretchr/testify/require"
 )
 
 func TestMediaType(t *testing.T) {
@@ -18,9 +17,16 @@ func TestMediaType(t *testing.T) {
 		Example: jsontext.Value(`"foo"`),
 	}
 
-	require.NoError(t, merge.MediaType(a, b))
+	if err := merge.MediaType(a, b); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	// the result must land in a, the first argument
-	require.Equal(t, openapi.TypeString, a.Schema.Value.Type)
-	require.Equal(t, jsontext.Value(`"foo"`), a.Example)
+	if got := a.Schema.Value.Type; got != openapi.TypeString {
+		t.Fatalf("expected type %q, got %q", openapi.TypeString, got)
+	}
+
+	if string(a.Example) != `"foo"` {
+		t.Fatalf("expected example %q, got %q", `"foo"`, string(a.Example))
+	}
 }

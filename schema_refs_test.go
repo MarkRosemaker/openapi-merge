@@ -5,7 +5,6 @@ import (
 
 	"github.com/MarkRosemaker/openapi"
 	merge "github.com/MarkRosemaker/openapi-merge"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSchemaRefs(t *testing.T) {
@@ -18,9 +17,17 @@ func TestSchemaRefs(t *testing.T) {
 	sr := &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeString}}
 	b := openapi.SchemaRefs{"name": sr}
 
-	require.NoError(t, merge.SchemaRefs(&a, b))
-	require.Len(t, a, 1)
-	require.Same(t, sr, a["name"])
+	if err := merge.SchemaRefs(&a, b); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(a) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(a))
+	}
+
+	if a["name"] != sr {
+		t.Fatalf("expected the same schema ref pointer to be present in a")
+	}
 }
 
 func TestSchemaRefs_MergeExistingKey(t *testing.T) {
@@ -33,7 +40,15 @@ func TestSchemaRefs_MergeExistingKey(t *testing.T) {
 		Value: &openapi.Schema{Type: openapi.TypeString},
 	}}
 
-	require.NoError(t, merge.SchemaRefs(&a, b))
-	require.Len(t, a, 1)
-	require.Equal(t, openapi.TypeString, a["name"].Value.Type)
+	if err := merge.SchemaRefs(&a, b); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(a) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(a))
+	}
+
+	if got := a["name"].Value.Type; got != openapi.TypeString {
+		t.Fatalf("expected type %q, got %q", openapi.TypeString, got)
+	}
 }

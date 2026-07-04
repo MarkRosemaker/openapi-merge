@@ -5,7 +5,6 @@ import (
 
 	"github.com/MarkRosemaker/openapi"
 	merge "github.com/MarkRosemaker/openapi-merge"
-	"github.com/stretchr/testify/require"
 )
 
 func TestContent(t *testing.T) {
@@ -20,9 +19,17 @@ func TestContent(t *testing.T) {
 	}}}
 	b := openapi.Content{"application/json": mt}
 
-	require.NoError(t, merge.Content(&a, b))
-	require.Len(t, a, 1)
-	require.Same(t, mt, a["application/json"])
+	if err := merge.Content(&a, b); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(a) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(a))
+	}
+
+	if a["application/json"] != mt {
+		t.Fatalf("expected the same media type pointer to be present in a")
+	}
 }
 
 func TestContent_MergeExistingKey(t *testing.T) {
@@ -35,7 +42,15 @@ func TestContent_MergeExistingKey(t *testing.T) {
 		Schema: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeString}},
 	}}
 
-	require.NoError(t, merge.Content(&a, b))
-	require.Len(t, a, 1)
-	require.Equal(t, openapi.TypeString, a["application/json"].Schema.Value.Type)
+	if err := merge.Content(&a, b); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(a) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(a))
+	}
+
+	if got := a["application/json"].Schema.Value.Type; got != openapi.TypeString {
+		t.Fatalf("expected type %q, got %q", openapi.TypeString, got)
+	}
 }

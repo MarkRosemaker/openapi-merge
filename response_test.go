@@ -5,7 +5,6 @@ import (
 
 	"github.com/MarkRosemaker/openapi"
 	merge "github.com/MarkRosemaker/openapi-merge"
-	"github.com/stretchr/testify/require"
 )
 
 func TestResponse(t *testing.T) {
@@ -23,9 +22,19 @@ func TestResponse(t *testing.T) {
 		},
 	}
 
-	require.NoError(t, merge.Response(a, b))
+	if err := merge.Response(a, b); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
-	require.Equal(t, "the response", a.Description)
-	require.Len(t, a.Content, 1)
-	require.Equal(t, openapi.TypeString, a.Content["application/json"].Schema.Value.Type)
+	if a.Description != "the response" {
+		t.Fatalf("expected description %q, got %q", "the response", a.Description)
+	}
+
+	if len(a.Content) != 1 {
+		t.Fatalf("expected 1 content entry, got %d", len(a.Content))
+	}
+
+	if got := a.Content["application/json"].Schema.Value.Type; got != openapi.TypeString {
+		t.Fatalf("expected type %q, got %q", openapi.TypeString, got)
+	}
 }

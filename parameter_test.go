@@ -5,7 +5,6 @@ import (
 
 	"github.com/MarkRosemaker/openapi"
 	merge "github.com/MarkRosemaker/openapi-merge"
-	"github.com/stretchr/testify/require"
 )
 
 func TestParameter(t *testing.T) {
@@ -23,9 +22,16 @@ func TestParameter(t *testing.T) {
 		Schema:      &openapi.Schema{Type: openapi.TypeString},
 	}
 
-	require.NoError(t, merge.Parameter(a, b))
+	if err := merge.Parameter(a, b); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	// results must be merged into a, the first argument
-	require.Equal(t, "id", a.Name)
-	require.Equal(t, "the id", a.Description)
+	if a.Name != "id" {
+		t.Fatalf("expected name %q, got %q", "id", a.Name)
+	}
+
+	if a.Description != "the id" {
+		t.Fatalf("expected description %q, got %q", "the id", a.Description)
+	}
 }
