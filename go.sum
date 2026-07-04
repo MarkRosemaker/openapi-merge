@@ -14,16 +14,10 @@ github.com/MarkRosemaker/yaml v0.0.0-20251210071319-19c2e5051239 h1:gXtQQFnhhR3L
 github.com/MarkRosemaker/yaml v0.0.0-20251210071319-19c2e5051239/go.mod h1:ZCsZSBNpmRCahwRpdPHLxxh7nJgu70o//FGuA4ftt+E=
 github.com/MarkRosemaker/yaml2json v0.0.0-20251208205025-7b6431088b7b h1:ktptYL4agSegf5F+6qaCQsQQ/w6IKRpsgA0/wIyJyKg=
 github.com/MarkRosemaker/yaml2json v0.0.0-20251208205025-7b6431088b7b/go.mod h1:nH8RhjuY1qw+SNHuEHF+HqRRgAClWN1Xhb5eMtFGaJI=
-github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
-github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/go-api-libs/types v0.0.0-20251210072721-82754f56609d h1:OihMUySw53Oy0DTnE1CAfQ6YkX5/NBaS8Vc2Ww4T56Y=
 github.com/go-api-libs/types v0.0.0-20251210072721-82754f56609d/go.mod h1:tJx9kzXjCU+mT7BzZvqg149HnZiHmr8JvbFWsvm5vp0=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
-github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
-github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
-github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 golang.org/x/exp v0.0.0-20251209150349-8475f28825e9 h1:MDfG8Cvcqlt9XXrmEiD4epKn7VJHZO84hejP9Jmp0MM=
 golang.org/x/exp v0.0.0-20251209150349-8475f28825e9/go.mod h1:EPRbTFwzwjXj9NpYyyrvenVh9Y+GFeEvMNh7Xuz7xgU=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=

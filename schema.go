@@ -230,7 +230,7 @@ func Schema(a, b *openapi.Schema, isParam bool) error {
 				addNewProps = openapi.SchemaRefs{}
 			}
 
-			if err := schemaRefs(allProps, addNewProps, b.Properties); err != nil {
+			if err := schemaRefs(allProps, &addNewProps, b.Properties); err != nil {
 				return &errpath.ErrField{Field: field, Err: err}
 			}
 

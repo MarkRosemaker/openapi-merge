@@ -2,11 +2,11 @@ package merge_test
 
 import (
 	"encoding/json/jsontext"
+	"reflect"
 	"testing"
 
 	"github.com/MarkRosemaker/openapi"
 	merge "github.com/MarkRosemaker/openapi-merge"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSchema(t *testing.T) {
@@ -392,9 +392,17 @@ func TestSchema(t *testing.T) {
 			},
 		},
 	} {
-		require.NoError(t, merge.Schema(tc.a, tc.b, false))
-		require.Equal(t, tc.want, tc.a)
-		require.NoError(t, tc.a.Validate())
+		if err := merge.Schema(tc.a, tc.b, false); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if !reflect.DeepEqual(tc.want, tc.a) {
+			t.Fatalf("got %+v, want %+v", tc.a, tc.want)
+		}
+
+		if err := tc.a.Validate(); err != nil {
+			t.Fatalf("unexpected validation error: %v", err)
+		}
 	}
 }
 
@@ -409,8 +417,13 @@ func TestSchema_Error(t *testing.T) {
 		// {&openapi.Schema{}, nil, "schema b is nil"},
 	} {
 		err := merge.Schema(tc.a, tc.b, false)
-		require.Error(t, err)
-		require.Equal(t, tc.err, err.Error())
+		if err == nil {
+			t.Fatalf("expected an error, got nil")
+		}
+
+		if err.Error() != tc.err {
+			t.Fatalf("got error %q, want %q", err.Error(), tc.err)
+		}
 	}
 }
 
