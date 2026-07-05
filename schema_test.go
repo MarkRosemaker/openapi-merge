@@ -151,7 +151,8 @@ func TestSchema(t *testing.T) {
 							"foo", &openapi.Schema{
 								Type:    openapi.TypeBoolean,
 								Example: jsontext.Value("true"),
-							}),
+							},
+						),
 					},
 				},
 			},
@@ -168,7 +169,8 @@ func TestSchema(t *testing.T) {
 							"bar", &openapi.Schema{
 								Type:    openapi.TypeBoolean,
 								Example: jsontext.Value("true"),
-							}),
+							},
+						),
 					},
 				},
 			},
@@ -190,7 +192,8 @@ func TestSchema(t *testing.T) {
 							"bar", &openapi.Schema{
 								Type:    openapi.TypeBoolean,
 								Example: jsontext.Value("true"),
-							}),
+							},
+						),
 					},
 				},
 			},
