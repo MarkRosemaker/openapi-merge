@@ -394,6 +394,40 @@ func TestSchema(t *testing.T) {
 				Format: openapi.FormatDate,
 			},
 		},
+		// a date can be expressed as a date-time string or as a unix timestamp integer
+		{
+			&openapi.Schema{
+				Type:    openapi.TypeString,
+				Format:  openapi.FormatDateTime,
+				Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+			},
+			&openapi.Schema{
+				Type:    openapi.TypeInteger,
+				Example: jsontext.Value(`1485487350827`),
+			},
+			&openapi.Schema{
+				Type:    openapi.TypeString,
+				Format:  openapi.FormatDateTime,
+				Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+			},
+		},
+		// same as above, but with the integer as the first schema
+		{
+			&openapi.Schema{
+				Type:    openapi.TypeInteger,
+				Example: jsontext.Value(`1485487350827`),
+			},
+			&openapi.Schema{
+				Type:    openapi.TypeString,
+				Format:  openapi.FormatDateTime,
+				Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+			},
+			&openapi.Schema{
+				Type:    openapi.TypeString,
+				Format:  openapi.FormatDateTime,
+				Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+			},
+		},
 	} {
 		if err := merge.Schema(tc.a, tc.b, false); err != nil {
 			t.Fatalf("unexpected error: %v", err)

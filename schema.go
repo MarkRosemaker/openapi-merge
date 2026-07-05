@@ -128,6 +128,15 @@ func Schema(a, b *openapi.Schema, isParam bool) error {
 		} else if a.Type == openapi.TypeInteger && b.Type == openapi.TypeNumber {
 			*a = *b
 			return nil
+		} else if a.Type == openapi.TypeString && b.Type == openapi.TypeInteger &&
+			(a.Format == openapi.FormatDate || a.Format == openapi.FormatDateTime) {
+			// a date can be expressed as a date-time string or as a (unix timestamp) integer
+			*b = *a
+			return nil
+		} else if a.Type == openapi.TypeInteger && b.Type == openapi.TypeString &&
+			(b.Format == openapi.FormatDate || b.Format == openapi.FormatDateTime) {
+			*a = *b
+			return nil
 		} else if a.Type == openapi.TypeInteger && b.Type == openapi.TypeString {
 			*b = *a
 			return nil
