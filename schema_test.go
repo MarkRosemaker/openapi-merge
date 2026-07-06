@@ -394,7 +394,8 @@ func TestSchema(t *testing.T) {
 				Format: openapi.FormatDate,
 			},
 		},
-		// a date can be expressed as a date-time string or as a unix timestamp integer
+		// a date can be expressed as a date-time string or as a unix timestamp
+		// integer; both possibilities are documented with oneOf
 		{
 			&openapi.Schema{
 				Type:    openapi.TypeString,
@@ -406,9 +407,17 @@ func TestSchema(t *testing.T) {
 				Example: jsontext.Value(`1485487350827`),
 			},
 			&openapi.Schema{
-				Type:    openapi.TypeString,
-				Format:  openapi.FormatDateTime,
-				Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
 			},
 		},
 		// same as above, but with the integer as the first schema
@@ -423,9 +432,17 @@ func TestSchema(t *testing.T) {
 				Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
 			},
 			&openapi.Schema{
-				Type:    openapi.TypeString,
-				Format:  openapi.FormatDateTime,
-				Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
 			},
 		},
 	} {

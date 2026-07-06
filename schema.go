@@ -128,14 +128,31 @@ func Schema(a, b *openapi.Schema, isParam bool) error {
 		} else if a.Type == openapi.TypeInteger && b.Type == openapi.TypeNumber {
 			*a = *b
 			return nil
-		} else if a.Type == openapi.TypeString && b.Type == openapi.TypeInteger &&
-			(a.Format == openapi.FormatDate || a.Format == openapi.FormatDateTime) {
-			// a date can be expressed as a date-time string or as a (unix timestamp) integer
-			*b = *a
-			return nil
-		} else if a.Type == openapi.TypeInteger && b.Type == openapi.TypeString &&
-			(b.Format == openapi.FormatDate || b.Format == openapi.FormatDateTime) {
-			*a = *b
+		} else if isDateTimeString(a) && b.Type == openapi.TypeInteger ||
+			isDateTimeString(b) && a.Type == openapi.TypeInteger {
+			// a date can be expressed as a date-time string or as a unix timestamp
+			// integer; document both possibilities with oneOf rather than
+			// silently discarding one of them
+			strSchema, intSchema := a, b
+			if a.Type == openapi.TypeInteger {
+				strSchema, intSchema = b, a
+			}
+
+			strCopy, intCopy := *strSchema, *intSchema
+			strCopy.Title, strCopy.Description = "", ""
+			intCopy.Title, intCopy.Description = "", ""
+
+			merged := openapi.Schema{
+				Title:       a.Title,
+				Description: a.Description,
+				OneOf: openapi.SchemaRefList{
+					{Value: &strCopy},
+					{Value: &intCopy},
+				},
+			}
+
+			*a = merged
+			*b = merged
 			return nil
 		} else if a.Type == openapi.TypeInteger && b.Type == openapi.TypeString {
 			*b = *a
@@ -508,6 +525,12 @@ func isGeneratedFromNull(s *openapi.Schema) bool {
 		s.Format == "" &&
 		len(s.Properties) == 0 &&
 		s.AdditionalProperties == nil
+}
+
+// isDateTimeString reports whether the schema is a string with a date or date-time format.
+func isDateTimeString(s *openapi.Schema) bool {
+	return s.Type == openapi.TypeString &&
+		(s.Format == openapi.FormatDate || s.Format == openapi.FormatDateTime)
 }
 
 // func (l *loader) resolveSchema(s *Schema) error {
