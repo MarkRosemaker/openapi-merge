@@ -35,6 +35,20 @@ func Schema(a, b *openapi.Schema, isParam bool) error {
 		return mergeOneOf(a, b)
 	}
 
+	// symmetric case: b is the one that already has multiple possible shapes.
+	// a's Title/Description were already merged into a above; carry that
+	// over to b, since b (not a) is about to become the authoritative result.
+	if len(b.OneOf) > 0 {
+		b.Title, b.Description = a.Title, a.Description
+
+		if err := mergeOneOf(b, a); err != nil {
+			return err
+		}
+
+		*a = *b
+		return nil
+	}
+
 	tp := a.Type
 
 	if len(a.AllOf) > 0 {
