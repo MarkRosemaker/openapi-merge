@@ -622,6 +622,102 @@ func TestSchema(t *testing.T) {
 				},
 			},
 		},
+		// merging in a schema with no type information at all (e.g. a
+		// repeated/idempotent merge, or a schema derived from a null value
+		// elsewhere) must be a no-op, not an error
+		{
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+			&openapi.Schema{},
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+		},
+		// same as above, but with a schema generated from an actual null
+		// example rather than one with no type set at all
+		{
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+			&openapi.Schema{
+				Type:    openapi.TypeObject,
+				Example: jsontext.Value(`null`),
+			},
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+		},
+		// same no-op requirement, but with the oneOf on b instead of a
+		{
+			&openapi.Schema{},
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+		},
 	} {
 		if err := merge.Schema(tc.a, tc.b, false); err != nil {
 			t.Fatalf("unexpected error: %v", err)
