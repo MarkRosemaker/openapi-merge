@@ -566,6 +566,19 @@ func mergeArrayParamMismatch(a, b *openapi.Schema) error {
 // mergeOneOf merges b into the alternative of a.OneOf that matches its type,
 // since a already represents a value that can take multiple shapes.
 func mergeOneOf(a, b *openapi.Schema) error {
+	// b is itself a oneOf (e.g. built up from another, independent set of
+	// samples that happened to hit the same alternatives); merge each of its
+	// alternatives into a in turn rather than treating b as a single schema
+	if len(b.OneOf) > 0 {
+		for i, alt := range b.OneOf {
+			if err := mergeOneOf(a, alt.Value); err != nil {
+				return &errpath.ErrField{Field: "oneOf", Err: &errpath.ErrIndex{Index: i, Err: err}}
+			}
+		}
+
+		return nil
+	}
+
 	// b carries no real type information (e.g. it was generated from a null
 	// value in this particular sample); there's no way to tell which
 	// alternative it would belong to, so there's nothing to merge
