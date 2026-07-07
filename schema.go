@@ -566,6 +566,13 @@ func mergeArrayParamMismatch(a, b *openapi.Schema) error {
 // mergeOneOf merges b into the alternative of a.OneOf that matches its type,
 // since a already represents a value that can take multiple shapes.
 func mergeOneOf(a, b *openapi.Schema) error {
+	// b carries no real type information (e.g. it was generated from a null
+	// value in this particular sample); there's no way to tell which
+	// alternative it would belong to, so there's nothing to merge
+	if b.Type == "" || isGeneratedFromNull(b) {
+		return nil
+	}
+
 	idx := slices.IndexFunc(a.OneOf, func(alt *openapi.SchemaRef) bool {
 		return oneOfBranchMatches(alt.Value, b)
 	})
