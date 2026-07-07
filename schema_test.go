@@ -445,6 +445,183 @@ func TestSchema(t *testing.T) {
 				},
 			},
 		},
+		// merging a plain date-time string into a schema that is already a
+		// oneOf (from a previous merge) must land in the matching alternative
+		{
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+			&openapi.Schema{
+				Type:        openapi.TypeString,
+				Format:      openapi.FormatDateTime,
+				Description: "when this happened",
+				Example:     jsontext.Value(`"2026-05-07T01:14:57.371Z"`),
+			},
+			&openapi.Schema{
+				Description: "when this happened",
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+		},
+		// same as above, but merging a plain integer timestamp
+		{
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+			&openapi.Schema{
+				Type:    openapi.TypeInteger,
+				Example: jsontext.Value(`1620000000000`),
+			},
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+		},
+		// the oneOf can also be on b (e.g. because of merge order); the
+		// result must still land in a, merged into the matching alternative
+		{
+			&openapi.Schema{
+				Type:    openapi.TypeString,
+				Format:  openapi.FormatDateTime,
+				Example: jsontext.Value(`"2026-05-07T01:14:57.371Z"`),
+			},
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+		},
+		// same as above, but merging a plain integer into b's oneOf
+		{
+			&openapi.Schema{
+				Type:    openapi.TypeInteger,
+				Example: jsontext.Value(`1620000000000`),
+			},
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+		},
+		// a's title/description must survive even when b (not a) is the one
+		// with oneOf and therefore becomes the authoritative merged schema
+		{
+			&openapi.Schema{
+				Title:       "Created At",
+				Description: "when this happened",
+				Type:        openapi.TypeString,
+				Format:      openapi.FormatDateTime,
+				Example:     jsontext.Value(`"2026-05-07T01:14:57.371Z"`),
+			},
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+			&openapi.Schema{
+				Title:       "Created At",
+				Description: "when this happened",
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeString,
+						Format:  openapi.FormatDateTime,
+						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
+					}},
+					{Value: &openapi.Schema{
+						Type:    openapi.TypeInteger,
+						Example: jsontext.Value(`1485487350827`),
+					}},
+				},
+			},
+		},
 	} {
 		if err := merge.Schema(tc.a, tc.b, false); err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -469,6 +646,41 @@ func TestSchema_Error(t *testing.T) {
 	}{
 		// {nil, nil, "schema a is nil"},
 		// {&openapi.Schema{}, nil, "schema b is nil"},
+		{
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:   openapi.TypeString,
+						Format: openapi.FormatDateTime,
+					}},
+					{Value: &openapi.Schema{
+						Type: openapi.TypeInteger,
+					}},
+				},
+			},
+			&openapi.Schema{
+				Type: openapi.TypeBoolean,
+			},
+			`oneOf: no branch matches type "boolean"`,
+		},
+		// same as above, but with the oneOf on b instead of a
+		{
+			&openapi.Schema{
+				Type: openapi.TypeBoolean,
+			},
+			&openapi.Schema{
+				OneOf: openapi.SchemaRefList{
+					{Value: &openapi.Schema{
+						Type:   openapi.TypeString,
+						Format: openapi.FormatDateTime,
+					}},
+					{Value: &openapi.Schema{
+						Type: openapi.TypeInteger,
+					}},
+				},
+			},
+			`oneOf: no branch matches type "boolean"`,
+		},
 	} {
 		err := merge.Schema(tc.a, tc.b, false)
 		if err == nil {
