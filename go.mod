@@ -4,17 +4,17 @@ go 1.26.3
 
 require (
 	github.com/MarkRosemaker/errpath v0.0.0-20260425165607-bbd4959d04d9
-	github.com/MarkRosemaker/openapi v0.0.0-20260718160221-776196d7f513
+	github.com/MarkRosemaker/openapi v0.0.0-20260718220251-1bf2cab23c1d
 )
 
 require (
 	cloud.google.com/go v0.123.0 // indirect
 	github.com/MarkRosemaker/json2yaml v0.0.0-20260507220148-d6cc0d01bff0 // indirect
 	github.com/MarkRosemaker/jsonutil v0.0.0-20260718153618-78b5039427a4 // indirect
-	github.com/MarkRosemaker/ordmap v0.0.0-20260709220058-a44b93c1cb2e // indirect
+	github.com/MarkRosemaker/ordmap v0.0.0-20260718220113-57637f5c3ff8 // indirect
 	github.com/MarkRosemaker/yaml v0.0.0-20260508005758-fe21a538b084 // indirect
 	github.com/MarkRosemaker/yaml2json v0.0.0-20260507220136-7748efc522b2 // indirect
 	github.com/go-api-libs/types v0.0.0-20251210072721-82754f56609d // indirect
-	golang.org/x/exp v0.0.0-20260709172345-9ea1abe57597 // indirect
+	golang.org/x/exp v0.0.0-20260718201538-764159d718ef // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
