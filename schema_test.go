@@ -18,14 +18,40 @@ func TestSchema(t *testing.T) {
 	}{
 		{&openapi.Schema{
 			Type: openapi.TypeString,
-			Enum: []string{},
+			Enum: []any{},
 		}, &openapi.Schema{
 			Type:    openapi.TypeString,
 			Example: jsontext.Value(`"foo"`),
 		}, &openapi.Schema{
 			Type:    openapi.TypeString,
-			Enum:    []string{"foo"},
+			Enum:    []any{"foo"},
 			Example: jsontext.Value(`"foo"`),
+		}},
+		// enums are no longer string-only; an integer enum must pick up a
+		// new example the same way a string enum does
+		{&openapi.Schema{
+			Type: openapi.TypeInteger,
+			Enum: []any{},
+		}, &openapi.Schema{
+			Type:    openapi.TypeInteger,
+			Example: jsontext.Value(`2`),
+		}, &openapi.Schema{
+			Type:    openapi.TypeInteger,
+			Enum:    []any{float64(2)},
+			Example: jsontext.Value(`2`),
+		}},
+		// a value already present in the enum must not be duplicated,
+		// including for a non-string type
+		{&openapi.Schema{
+			Type: openapi.TypeBoolean,
+			Enum: []any{true},
+		}, &openapi.Schema{
+			Type:    openapi.TypeBoolean,
+			Example: jsontext.Value(`true`),
+		}, &openapi.Schema{
+			Type:    openapi.TypeBoolean,
+			Enum:    []any{true},
+			Example: jsontext.Value(`true`),
 		}},
 		{&openapi.Schema{
 			Type:    openapi.TypeString,
@@ -47,7 +73,7 @@ func TestSchema(t *testing.T) {
 				"type": &openapi.SchemaRef{Value: &openapi.Schema{
 					Type:    openapi.TypeString,
 					Example: jsontext.Value(`"text"`),
-					Enum:    []string{"text"},
+					Enum:    []any{"text"},
 				}},
 				"text": &openapi.SchemaRef{Value: &openapi.Schema{
 					Type: openapi.TypeObject,
@@ -94,7 +120,7 @@ func TestSchema(t *testing.T) {
 				"type": &openapi.SchemaRef{Value: &openapi.Schema{
 					Type:    openapi.TypeString,
 					Example: jsontext.Value(`"text"`),
-					Enum:    []string{"text", "mention"},
+					Enum:    []any{"text", "mention"},
 				}},
 				"text": &openapi.SchemaRef{Value: &openapi.Schema{
 					Type: openapi.TypeObject,
@@ -146,7 +172,7 @@ func TestSchema(t *testing.T) {
 							"type", &openapi.Schema{
 								Type:    openapi.TypeString,
 								Example: jsontext.Value(`"foo"`),
-								Enum:    []string{"foo"},
+								Enum:    []any{"foo"},
 							},
 							"foo", &openapi.Schema{
 								Type:    openapi.TypeBoolean,
@@ -183,7 +209,7 @@ func TestSchema(t *testing.T) {
 							"type", &openapi.Schema{
 								Type:    openapi.TypeString,
 								Example: jsontext.Value(`"foo"`),
-								Enum:    []string{"foo", "bar"},
+								Enum:    []any{"foo", "bar"},
 							},
 							"foo", &openapi.Schema{
 								Type:    openapi.TypeBoolean,
