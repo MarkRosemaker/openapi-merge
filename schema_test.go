@@ -122,7 +122,8 @@ func TestSchema(t *testing.T) {
 					Example: jsontext.Value(`"text"`),
 					Enum: []jsontext.Value{
 						jsontext.Value(`"text"`),
-						jsontext.Value(`"mention"`)},
+						jsontext.Value(`"mention"`),
+					},
 				}},
 				"text": &openapi.SchemaRef{Value: &openapi.Schema{
 					Type: openapi.TypeObject,
@@ -213,7 +214,8 @@ func TestSchema(t *testing.T) {
 								Example: jsontext.Value(`"foo"`),
 								Enum: []jsontext.Value{
 									jsontext.Value(`"foo"`),
-									jsontext.Value(`"bar"`)},
+									jsontext.Value(`"bar"`),
+								},
 							},
 							"foo", &openapi.Schema{
 								Type:    openapi.TypeBoolean,
