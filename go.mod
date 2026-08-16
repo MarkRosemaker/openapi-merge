@@ -4,7 +4,7 @@ go 1.26.3
 
 require (
 	github.com/MarkRosemaker/errpath v0.0.0-20260425165607-bbd4959d04d9
-	github.com/MarkRosemaker/openapi v0.0.0-20260816013442-81734c053376
+	github.com/MarkRosemaker/openapi v0.0.0-20260816160214-339f6866f4df
 )
 
 require (
