@@ -13,13 +13,13 @@ func TestParameter(t *testing.T) {
 	a := &openapi.Parameter{
 		Name:   "TODO",
 		In:     openapi.ParameterLocationQuery,
-		Schema: &openapi.Schema{Type: openapi.TypeString},
+		Schema: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeString}},
 	}
 	b := &openapi.Parameter{
 		Name:        "id",
 		In:          openapi.ParameterLocationQuery,
 		Description: "the id",
-		Schema:      &openapi.Schema{Type: openapi.TypeString},
+		Schema:      &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeString}},
 	}
 
 	if err := merge.Parameter(a, b); err != nil {
