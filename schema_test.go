@@ -878,6 +878,48 @@ func TestSchema(t *testing.T) {
 				},
 			},
 		},
+		// a value that overflowed to "Infinity" and was recorded as a bare
+		// string keeps a's number type; the string side carried no real
+		// information beyond that overflow.
+		{&openapi.Schema{
+			Type:    openapi.TypeNumber,
+			Format:  openapi.FormatDouble,
+			Example: jsontext.Value(`42.5`),
+		}, &openapi.Schema{
+			Type:    openapi.TypeString,
+			Example: jsontext.Value(`"Infinity"`),
+		}, &openapi.Schema{
+			Type:    openapi.TypeNumber,
+			Format:  openapi.FormatDouble,
+			Example: jsontext.Value(`42.5`),
+		}},
+		// a value recorded as exactly 0.0 (the bare zero-double schema) keeps
+		// a's string type the same way.
+		{&openapi.Schema{
+			Type:    openapi.TypeString,
+			Example: jsontext.Value(`"foo"`),
+		}, &openapi.Schema{
+			Type:    openapi.TypeNumber,
+			Format:  openapi.FormatDouble,
+			Example: jsontext.Value(`0.0`),
+		}, &openapi.Schema{
+			Type:    openapi.TypeString,
+			Example: jsontext.Value(`"foo"`),
+		}},
+		// symmetric case: a itself is the bare "Infinity" string schema, so
+		// b's real number type wins instead.
+		{&openapi.Schema{
+			Type:    openapi.TypeString,
+			Example: jsontext.Value(`"Infinity"`),
+		}, &openapi.Schema{
+			Type:    openapi.TypeNumber,
+			Format:  openapi.FormatDouble,
+			Example: jsontext.Value(`99.9`),
+		}, &openapi.Schema{
+			Type:    openapi.TypeNumber,
+			Format:  openapi.FormatDouble,
+			Example: jsontext.Value(`99.9`),
+		}},
 	} {
 		if err := merge.Schema(tc.a, tc.b, false); err != nil {
 			t.Fatalf("unexpected error: %v", err)
