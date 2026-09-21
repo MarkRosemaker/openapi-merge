@@ -1005,6 +1005,23 @@ func TestSchema_Error(t *testing.T) {
 			},
 			`oneOf[0].oneOf: no branch matches type "boolean"`,
 		},
+		// a type mismatch none of reconcileTypeMismatch's special cases
+		// resolve carries both schemas' own JSON, not just their types.
+		{
+			&openapi.Schema{Type: openapi.TypeObject},
+			&openapi.Schema{Type: openapi.TypeBoolean},
+			"type: \"object\" != \"boolean\"\n" +
+				`a: {"type":"object"}` + "\n" +
+				`b: {"type":"boolean"}`,
+		},
+		// likewise for a format mismatch reconcileFormats could not resolve.
+		{
+			&openapi.Schema{Type: openapi.TypeString, Format: openapi.FormatEmail},
+			&openapi.Schema{Type: openapi.TypeString, Format: openapi.FormatURI},
+			"format: \"email\" != \"uri\"\n" +
+				`a: {"type":"string","format":"email"}` + "\n" +
+				`b: {"type":"string","format":"uri"}`,
+		},
 	} {
 		err := merge.Schema(tc.a, tc.b, false)
 		if err == nil {

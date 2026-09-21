@@ -199,9 +199,7 @@ func reconcileTypeMismatch(a, b *openapi.Schema, tp openapi.DataType, isParam bo
 		*b = *a
 		return true, nil
 	default:
-		fmt.Printf("a: %s\n", aJSON)
-		fmt.Printf("b: %s\n", bJSON)
-		return true, &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q != %q", tp, b.Type)}
+		return true, mismatchError("type", fmt.Errorf("%q != %q", tp, b.Type), a, b)
 	}
 }
 
@@ -241,10 +239,7 @@ func reconcileFormats(a, b *openapi.Schema) error {
 
 	// check that the formats are the same
 	if a.Format != b.Format {
-		fmt.Printf("a: %s\n", jsonString(a))
-		fmt.Printf("b: %s\n", jsonString(b))
-
-		return &errpath.ErrField{Field: "format", Err: fmt.Errorf("%q != %q", a.Format, b.Format)}
+		return mismatchError("format", fmt.Errorf("%q != %q", a.Format, b.Format), a, b)
 	}
 
 	return nil
@@ -305,10 +300,7 @@ func mergeByType(a, b *openapi.Schema, tp openapi.DataType) error {
 			return err
 		}
 	default:
-		fmt.Printf("a: %s\n", jsonString(a))
-		fmt.Printf("b: %s\n", jsonString(b))
-
-		return &errpath.ErrField{Field: "type", Err: fmt.Errorf("%q unimplemented", tp)}
+		return mismatchError("type", fmt.Errorf("%q unimplemented", tp), a, b)
 	}
 
 	return nil
@@ -380,6 +372,17 @@ func mergeObjectProperties(a, b *openapi.Schema) error {
 func jsonString(s *openapi.Schema) string {
 	b, _ := json.Marshal(s)
 	return string(b)
+}
+
+// mismatchError builds the error for a merge that could not be resolved,
+// naming field and wrapping err, with a and b's own marshaled JSON appended
+// so whoever reads the error can see the schemas that did not match without
+// having to reproduce the merge.
+func mismatchError(field string, err error, a, b *openapi.Schema) error {
+	return &errpath.ErrField{
+		Field: field,
+		Err:   fmt.Errorf("%w\na: %s\nb: %s", err, jsonString(a), jsonString(b)),
+	}
 }
 
 func defaultSchemaRef() *openapi.SchemaRef {
