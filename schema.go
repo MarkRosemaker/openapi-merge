@@ -2,7 +2,6 @@ package merge
 
 import (
 	"bytes"
-	"cmp"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
@@ -294,8 +293,13 @@ func mergeByType(a, b *openapi.Schema, tp openapi.DataType) error {
 	case openapi.TypeBoolean, openapi.TypeInteger, openapi.TypeNumber: // nothing to do
 	case openapi.TypeArray:
 		// guard against nil pointer if a schema is invalid
-		a.Items = cmp.Or(a.Items, defaultSchemaRef())
-		b.Items = cmp.Or(b.Items, defaultSchemaRef())
+		if a.Items == nil {
+			a.Items = defaultSchemaRef()
+		}
+
+		if b.Items == nil {
+			b.Items = defaultSchemaRef()
+		}
 
 		if err := Schema(a.Items.Value, b.Items.Value, false); err != nil {
 			return err
