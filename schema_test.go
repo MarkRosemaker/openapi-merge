@@ -920,6 +920,54 @@ func TestSchema(t *testing.T) {
 			Format:  openapi.FormatDouble,
 			Example: jsontext.Value(`99.9`),
 		}},
+		// prefixItems of the same length merge position-wise, like a
+		// fixed-shape tuple (e.g. a "state vector": id, then a coordinate).
+		{&openapi.Schema{
+			Type: openapi.TypeArray,
+			PrefixItems: openapi.SchemaRefList{
+				{Value: &openapi.Schema{Type: openapi.TypeString, Example: jsontext.Value(`"39de4f"`)}},
+				{Value: &openapi.Schema{Type: openapi.TypeNumber, Format: openapi.FormatDouble, Example: jsontext.Value(`2.36`)}},
+			},
+		}, &openapi.Schema{
+			Type: openapi.TypeArray,
+			PrefixItems: openapi.SchemaRefList{
+				{Value: &openapi.Schema{Type: openapi.TypeString, Example: jsontext.Value(`"3c6444"`)}},
+				{Value: &openapi.Schema{Type: openapi.TypeNumber, Format: openapi.FormatDouble, Example: jsontext.Value(`5.12`)}},
+			},
+		}, &openapi.Schema{
+			Type: openapi.TypeArray,
+			PrefixItems: openapi.SchemaRefList{
+				{Value: &openapi.Schema{Type: openapi.TypeString, Example: jsontext.Value(`"39de4f"`)}},
+				{Value: &openapi.Schema{Type: openapi.TypeNumber, Format: openapi.FormatDouble, Example: jsontext.Value(`2.36`)}},
+			},
+		}},
+		// a tuple can't line up positionally against a different-length
+		// tuple, or a plain list (no prefixItems at all): both shapes are
+		// kept as alternatives via oneOf rather than forced into one.
+		{&openapi.Schema{
+			Type: openapi.TypeArray,
+			PrefixItems: openapi.SchemaRefList{
+				{Value: &openapi.Schema{Type: openapi.TypeString}},
+				{Value: &openapi.Schema{Type: openapi.TypeInteger}},
+			},
+		}, &openapi.Schema{
+			Type:  openapi.TypeArray,
+			Items: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeBoolean}},
+		}, &openapi.Schema{
+			OneOf: openapi.SchemaRefList{
+				{Value: &openapi.Schema{
+					Type: openapi.TypeArray,
+					PrefixItems: openapi.SchemaRefList{
+						{Value: &openapi.Schema{Type: openapi.TypeString}},
+						{Value: &openapi.Schema{Type: openapi.TypeInteger}},
+					},
+				}},
+				{Value: &openapi.Schema{
+					Type:  openapi.TypeArray,
+					Items: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeBoolean}},
+				}},
+			},
+		}},
 	} {
 		if err := merge.Schema(tc.a, tc.b, false); err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -1021,6 +1069,27 @@ func TestSchema_Error(t *testing.T) {
 			"format: \"email\" != \"uri\"\n" +
 				`a: {"type":"string","format":"email"}` + "\n" +
 				`b: {"type":"string","format":"uri"}`,
+		},
+		// same-length prefixItems still report a genuine mismatch at the
+		// position it occurred, rather than silently dropping it.
+		{
+			&openapi.Schema{
+				Type: openapi.TypeArray,
+				PrefixItems: openapi.SchemaRefList{
+					{Value: &openapi.Schema{Type: openapi.TypeString}},
+					{Value: &openapi.Schema{Type: openapi.TypeString}},
+				},
+			},
+			&openapi.Schema{
+				Type: openapi.TypeArray,
+				PrefixItems: openapi.SchemaRefList{
+					{Value: &openapi.Schema{Type: openapi.TypeString}},
+					{Value: &openapi.Schema{Type: openapi.TypeBoolean}},
+				},
+			},
+			"prefixItems[1].type: \"string\" != \"boolean\"\n" +
+				`a: {"type":"string"}` + "\n" +
+				`b: {"type":"boolean"}`,
 		},
 	} {
 		err := merge.Schema(tc.a, tc.b, false)
