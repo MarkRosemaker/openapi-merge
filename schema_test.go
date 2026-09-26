@@ -67,6 +67,22 @@ func TestSchema(t *testing.T) {
 			Example: jsontext.Value(`"https://www.example.com/"`),
 			// TODO: Nullable
 		}},
+		// a property that was null in one sample and a real array (with a
+		// specific item type) in another: reconciling the null side into an
+		// array must adopt the real item type for its own missing Items too,
+		// not clash with a bare default object placeholder for it.
+		{&openapi.Schema{
+			Type:  openapi.TypeArray,
+			Items: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger}},
+		}, &openapi.Schema{
+			Type:    openapi.TypeObject,
+			Example: jsontext.Value(`null`),
+		}, &openapi.Schema{
+			Type:    openapi.TypeArray,
+			Items:   &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger, Example: jsontext.Value(`null`)}},
+			Example: jsontext.Value(`null`),
+			// TODO: Nullable
+		}},
 		{&openapi.Schema{
 			Type: openapi.TypeObject,
 			Properties: openapi.SchemaRefs{
