@@ -70,7 +70,8 @@ func TestSchema(t *testing.T) {
 		// a property that was null in one sample and a real array (with a
 		// specific item type) in another: reconciling the null side into an
 		// array must adopt the real item type for its own missing Items too,
-		// not clash with a bare default object placeholder for it.
+		// without fabricating an example for it -- no array element was ever
+		// actually observed as null, only the field itself was.
 		{&openapi.Schema{
 			Type:  openapi.TypeArray,
 			Items: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger}},
@@ -79,9 +80,57 @@ func TestSchema(t *testing.T) {
 			Example: jsontext.Value(`null`),
 		}, &openapi.Schema{
 			Type:    openapi.TypeArray,
-			Items:   &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger, Example: jsontext.Value(`null`)}},
+			Items:   &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger}},
 			Example: jsontext.Value(`null`),
 			// TODO: Nullable
+		}},
+		// the same case with the null sample on the other side: a is the one
+		// with no real information, so it's a (not b) that ends up mutated
+		// with the reconciled type and the adopted, example-free Items.
+		{&openapi.Schema{
+			Type:    openapi.TypeObject,
+			Example: jsontext.Value(`null`),
+		}, &openapi.Schema{
+			Type:  openapi.TypeArray,
+			Items: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger}},
+		}, &openapi.Schema{
+			Type:    openapi.TypeArray,
+			Items:   &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger}},
+			Example: jsontext.Value(`null`),
+			// TODO: Nullable
+		}},
+		// the same null-vs-real-array-of-integer case, but one level deeper:
+		// a prefixItems position that is itself an array (e.g. OpenSky's
+		// "state" tuple's first element, a list of sensor IDs) was null in
+		// one sample and a real array in another. The position's own
+		// example:null is correct (it really was observed as null), but its
+		// adopted Items must not also claim to have seen a null element.
+		{&openapi.Schema{
+			Type: openapi.TypeArray,
+			PrefixItems: openapi.SchemaRefList{
+				{Value: &openapi.Schema{
+					Type:  openapi.TypeArray,
+					Items: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger}},
+				}},
+				{Value: &openapi.Schema{Type: openapi.TypeBoolean}},
+			},
+		}, &openapi.Schema{
+			Type: openapi.TypeArray,
+			PrefixItems: openapi.SchemaRefList{
+				{Value: &openapi.Schema{Type: openapi.TypeObject, Example: jsontext.Value(`null`)}},
+				{Value: &openapi.Schema{Type: openapi.TypeBoolean}},
+			},
+		}, &openapi.Schema{
+			Type: openapi.TypeArray,
+			PrefixItems: openapi.SchemaRefList{
+				{Value: &openapi.Schema{
+					Type:    openapi.TypeArray,
+					Items:   &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger}},
+					Example: jsontext.Value(`null`),
+					// TODO: Nullable
+				}},
+				{Value: &openapi.Schema{Type: openapi.TypeBoolean}},
+			},
 		}},
 		{&openapi.Schema{
 			Type: openapi.TypeObject,
