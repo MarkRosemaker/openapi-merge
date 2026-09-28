@@ -1179,3 +1179,52 @@ func props(keyVals ...any) openapi.SchemaRefs {
 
 	return p
 }
+
+func TestSchema_AdditionalProperties(t *testing.T) {
+	t.Parallel()
+
+	allowed := &openapi.AdditionalProperties{Allowed: true}
+	forbidden := &openapi.AdditionalProperties{Allowed: false}
+	str := func() *openapi.AdditionalProperties {
+		return &openapi.AdditionalProperties{Schema: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeString}}}
+	}
+
+	for _, tc := range []struct {
+		name    string
+		a, b    *openapi.AdditionalProperties
+		want    *openapi.AdditionalProperties
+		wantMap bool
+	}{
+		{name: "both absent"},
+		{name: "absent says nothing", a: nil, b: forbidden, want: forbidden},
+		{name: "absent says nothing, reversed", a: allowed, b: nil, want: allowed},
+		{name: "false and false", a: forbidden, b: forbidden, want: forbidden},
+		{name: "true beats false", a: forbidden, b: allowed, want: allowed},
+		{name: "true beats false, reversed", a: allowed, b: forbidden, want: allowed},
+		{name: "schema beats boolean", a: forbidden, b: str(), wantMap: true},
+		{name: "schema beats boolean, reversed", a: str(), b: allowed, wantMap: true},
+		{name: "schemas merge", a: str(), b: str(), wantMap: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			a := &openapi.Schema{Type: openapi.TypeObject, AdditionalProperties: tc.a}
+			b := &openapi.Schema{Type: openapi.TypeObject, AdditionalProperties: tc.b}
+
+			if err := merge.Schema(a, b, false); err != nil {
+				t.Fatal(err)
+			}
+
+			got := a.AdditionalProperties
+			if tc.wantMap {
+				if got == nil || got.Schema == nil || got.Schema.Value.Type != openapi.TypeString {
+					t.Fatalf("got %+v, want the string schema", got)
+				}
+
+				return
+			}
+
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Fatalf("got %+v, want %+v", got, tc.want)
+			}
+		})
+	}
+}
