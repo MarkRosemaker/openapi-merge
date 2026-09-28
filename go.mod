@@ -4,7 +4,7 @@ go 1.27
 
 require (
 	github.com/MarkRosemaker/errpath v0.0.0-20260927120109-a8204594eddb
-	github.com/MarkRosemaker/openapi v0.0.0-20260928224039-ea37214c4e28
+	github.com/MarkRosemaker/openapi v0.0.0-20260928232605-32d203cb374a
 )
 
 require (
