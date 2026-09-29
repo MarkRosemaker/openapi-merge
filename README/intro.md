@@ -1,7 +1,7 @@
 Observe `GET /users/{id}` once and you might see `{"id": 1, "name": "Alice"}`.
 Observe it again and you get `{"id": 2, "name": "Bob", "nickname": null}`. Neither
 response is the schema. The schema is what you get by merging them: three
-properties, one of them optional, one of them of unknown type.
+properties, one of them optional, one of them only ever seen as `null`.
 
 That is what this module does. It is used by
 [`openapi-enrich`](https://github.com/MarkRosemaker/openapi-enrich), which builds

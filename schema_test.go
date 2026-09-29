@@ -57,15 +57,11 @@ func TestSchema(t *testing.T) {
 			Type:    openapi.TypeString,
 			Format:  openapi.FormatURI,
 			Example: jsontext.Value(`"https://www.example.com/"`),
-		}, &openapi.Schema{
-			Type:    openapi.TypeObject,
-			Example: jsontext.Value(`null`),
-			// TODO: Nullable
-		}, &openapi.Schema{
-			Type:    openapi.TypeString,
-			Format:  openapi.FormatURI,
-			Example: jsontext.Value(`"https://www.example.com/"`),
-			// TODO: Nullable
+		}, &openapi.Schema{Type: openapi.TypeNull}, &openapi.Schema{
+			Type:     openapi.TypeString,
+			Nullable: true,
+			Format:   openapi.FormatURI,
+			Example:  jsontext.Value(`"https://www.example.com/"`),
 		}},
 		// a property that was null in one sample and a real array (with a
 		// specific item type) in another: reconciling the null side into an
@@ -74,30 +70,22 @@ func TestSchema(t *testing.T) {
 		// actually observed as null, only the field itself was.
 		{&openapi.Schema{
 			Type:  openapi.TypeArray,
-			Items: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger}},
-		}, &openapi.Schema{
-			Type:    openapi.TypeObject,
-			Example: jsontext.Value(`null`),
-		}, &openapi.Schema{
-			Type:    openapi.TypeArray,
-			Items:   &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger}},
-			Example: jsontext.Value(`null`),
-			// TODO: Nullable
+			Items: &openapi.Schema{Type: openapi.TypeInteger},
+		}, &openapi.Schema{Type: openapi.TypeNull}, &openapi.Schema{
+			Type:     openapi.TypeArray,
+			Items:    &openapi.Schema{Type: openapi.TypeInteger},
+			Nullable: true,
 		}},
 		// the same case with the null sample on the other side: a is the one
 		// with no real information, so it's a (not b) that ends up mutated
 		// with the reconciled type and the adopted, example-free Items.
-		{&openapi.Schema{
-			Type:    openapi.TypeObject,
-			Example: jsontext.Value(`null`),
-		}, &openapi.Schema{
+		{&openapi.Schema{Type: openapi.TypeNull}, &openapi.Schema{
 			Type:  openapi.TypeArray,
-			Items: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger}},
+			Items: &openapi.Schema{Type: openapi.TypeInteger},
 		}, &openapi.Schema{
-			Type:    openapi.TypeArray,
-			Items:   &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger}},
-			Example: jsontext.Value(`null`),
-			// TODO: Nullable
+			Type:     openapi.TypeArray,
+			Items:    &openapi.Schema{Type: openapi.TypeInteger},
+			Nullable: true,
 		}},
 		// the same null-vs-real-array-of-integer case, but one level deeper:
 		// a prefixItems position that is itself an array (e.g. OpenSky's
@@ -107,60 +95,59 @@ func TestSchema(t *testing.T) {
 		// adopted Items must not also claim to have seen a null element.
 		{&openapi.Schema{
 			Type: openapi.TypeArray,
-			PrefixItems: openapi.SchemaRefList{
-				{Value: &openapi.Schema{
+			PrefixItems: openapi.SchemaList{
+				&openapi.Schema{
 					Type:  openapi.TypeArray,
-					Items: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger}},
-				}},
-				{Value: &openapi.Schema{Type: openapi.TypeBoolean}},
+					Items: &openapi.Schema{Type: openapi.TypeInteger},
+				},
+				&openapi.Schema{Type: openapi.TypeBoolean},
 			},
 		}, &openapi.Schema{
 			Type: openapi.TypeArray,
-			PrefixItems: openapi.SchemaRefList{
-				{Value: &openapi.Schema{Type: openapi.TypeObject, Example: jsontext.Value(`null`)}},
-				{Value: &openapi.Schema{Type: openapi.TypeBoolean}},
+			PrefixItems: openapi.SchemaList{
+				&openapi.Schema{Type: openapi.TypeNull},
+				&openapi.Schema{Type: openapi.TypeBoolean},
 			},
 		}, &openapi.Schema{
 			Type: openapi.TypeArray,
-			PrefixItems: openapi.SchemaRefList{
-				{Value: &openapi.Schema{
-					Type:    openapi.TypeArray,
-					Items:   &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeInteger}},
-					Example: jsontext.Value(`null`),
-					// TODO: Nullable
-				}},
-				{Value: &openapi.Schema{Type: openapi.TypeBoolean}},
+			PrefixItems: openapi.SchemaList{
+				&openapi.Schema{
+					Type:     openapi.TypeArray,
+					Items:    &openapi.Schema{Type: openapi.TypeInteger},
+					Nullable: true,
+				},
+				&openapi.Schema{Type: openapi.TypeBoolean},
 			},
 		}},
 		{&openapi.Schema{
 			Type: openapi.TypeObject,
-			Properties: openapi.SchemaRefs{
-				"type": &openapi.SchemaRef{Value: &openapi.Schema{
+			Properties: openapi.Schemas{
+				"type": &openapi.Schema{
 					Type:    openapi.TypeString,
 					Example: jsontext.Value(`"text"`),
 					Enum:    []jsontext.Value{jsontext.Value(`"text"`)},
-				}},
-				"text": &openapi.SchemaRef{Value: &openapi.Schema{
+				},
+				"text": &openapi.Schema{
 					Type: openapi.TypeObject,
-					Properties: openapi.SchemaRefs{
-						"content": &openapi.SchemaRef{Value: &openapi.Schema{
+					Properties: openapi.Schemas{
+						"content": &openapi.Schema{
 							Type:    openapi.TypeString,
 							Example: jsontext.Value(`"This is a simple paragraph."`),
-						}},
-						"link": &openapi.SchemaRef{Value: &openapi.Schema{
+						},
+						"link": &openapi.Schema{
 							Type: openapi.TypeObject,
-							Properties: openapi.SchemaRefs{
-								"url": &openapi.SchemaRef{Value: &openapi.Schema{
+							Properties: openapi.Schemas{
+								"url": &openapi.Schema{
 									Type:    openapi.TypeString,
 									Format:  openapi.FormatURI,
 									Example: jsontext.Value(`"https://www.example.com/"`),
-								}},
+								},
 							},
-						}},
+						},
 					},
 					Required: []string{"content", "link"},
 					Example:  jsontext.Value(`{"content":"This is a simple paragraph.","link":null}`),
-				}},
+				},
 
 				// a: {
 				// "properties":{"annotations":{"type":"object","properties":{"bold":{"type":"boolean","example":false},"italic":{"type":"boolean","example":false},"strikethrough":{"type":"boolean","example":false},"underline":{"type":"boolean","example":false},"code":{"type":"boolean","example":false},"color":{"type":"string","example":"default"}},"required":["bold","italic","strikethrough","underline","code","color"],"example":{"bold":false,"italic":false,"strikethrough":false,"underline":false,"code":false,"color":"default"}},"plain_text":{"type":"string","example":"This is a simple paragraph."},"href":{"type":"string","format":"uri","example":"https://www.example.com/"},"mention":{"type":"object","properties":{"type":{"type":"string","example":"link_mention"},"link_mention":{"type":"object","properties":{"href":{"type":"string","format":"uri","example":"https://example.com/"},"title":{"type":"string","example":"Example Domain"},"description":{"type":"string","example":"This domain is for use in illustrative examples in documents. You may use this\n    domain in literature without prior coordination or asking for permission."}},"required":["href","title","description"],"example":{"href":"https://example.com/","title":"Example Domain","description":"This domain is for use in illustrative examples in documents. You may use this\n    domain in literature without prior coordination or asking for permission."}},"database":{"type":"object","properties":{"id":{"type":"string","format":"uuid","example":"7a3c647e-4c1e-4c27-bf1d-cfb0105e55ce"}},"required":["id"],"example":{"id":"7a3c647e-4c1e-4c27-bf1d-cfb0105e55ce"}}},"required":["type","link_mention"],"example":{"type":"link_mention","link_mention":{"href":"https://example.com/","title":"Example Domain","description":"This domain is for use in illustrative examples in documents. You may use this\n    domain in literature without prior coordination or asking for permission."}}},"equation":{"type":"object","properties":{"expression":{"type":"string","example":"e^{\\pi i}+1=0"}},"required":["expression"],"example":{"expression":"e^{\\pi i}+1=0"}}}
@@ -169,45 +156,45 @@ func TestSchema(t *testing.T) {
 			Example: jsontext.Value(`{"type":"text","text":{"content":"This is a simple paragraph.","link":null},"annotations":{"bold":false,"italic":false,"strikethrough":false,"underline":false,"code":false,"color":"default"},"plain_text":"This is a simple paragraph.","href":null}`),
 		}, &openapi.Schema{
 			Type: openapi.TypeObject,
-			Properties: openapi.SchemaRefs{
-				"type": &openapi.SchemaRef{Value: &openapi.Schema{
+			Properties: openapi.Schemas{
+				"type": &openapi.Schema{
 					Type:    openapi.TypeString,
 					Example: jsontext.Value(`"mention"`),
-				}},
+				},
 			},
 			Required: []string{"type", "mention", "annotations", "plain_text", "href"},
 		}, &openapi.Schema{
 			Type: openapi.TypeObject,
-			Properties: openapi.SchemaRefs{
-				"type": &openapi.SchemaRef{Value: &openapi.Schema{
+			Properties: openapi.Schemas{
+				"type": &openapi.Schema{
 					Type:    openapi.TypeString,
 					Example: jsontext.Value(`"text"`),
 					Enum: []jsontext.Value{
 						jsontext.Value(`"text"`),
 						jsontext.Value(`"mention"`),
 					},
-				}},
-				"text": &openapi.SchemaRef{Value: &openapi.Schema{
+				},
+				"text": &openapi.Schema{
 					Type: openapi.TypeObject,
-					Properties: openapi.SchemaRefs{
-						"content": &openapi.SchemaRef{Value: &openapi.Schema{
+					Properties: openapi.Schemas{
+						"content": &openapi.Schema{
 							Type:    openapi.TypeString,
 							Example: jsontext.Value(`"This is a simple paragraph."`),
-						}},
-						"link": &openapi.SchemaRef{Value: &openapi.Schema{
+						},
+						"link": &openapi.Schema{
 							Type: openapi.TypeObject,
-							Properties: openapi.SchemaRefs{
-								"url": &openapi.SchemaRef{Value: &openapi.Schema{
+							Properties: openapi.Schemas{
+								"url": &openapi.Schema{
 									Type:    openapi.TypeString,
 									Format:  openapi.FormatURI,
 									Example: jsontext.Value(`"https://www.example.com/"`),
-								}},
+								},
 							},
-						}},
+						},
 					},
 					Required: []string{"content", "link"},
 					Example:  jsontext.Value(`{"content":"This is a simple paragraph.","link":null}`),
-				}},
+				},
 			},
 			Example: jsontext.Value(`{"type":"text","text":{"content":"This is a simple paragraph.","link":null},"annotations":{"bold":false,"italic":false,"strikethrough":false,"underline":false,"code":false,"color":"default"},"plain_text":"This is a simple paragraph.","href":null}`),
 		}},
@@ -230,65 +217,59 @@ func TestSchema(t *testing.T) {
 		{
 			&openapi.Schema{
 				Type: openapi.TypeArray,
-				Items: &openapi.SchemaRef{
-					Value: &openapi.Schema{
-						Type: openapi.TypeObject,
-						Properties: props(
-							"type", &openapi.Schema{
-								Type:    openapi.TypeString,
-								Example: jsontext.Value(`"foo"`),
-								Enum:    []jsontext.Value{jsontext.Value(`"foo"`)},
-							},
-							"foo", &openapi.Schema{
-								Type:    openapi.TypeBoolean,
-								Example: jsontext.Value("true"),
-							},
-						),
-					},
+				Items: &openapi.Schema{
+					Type: openapi.TypeObject,
+					Properties: props(
+						"type", &openapi.Schema{
+							Type:    openapi.TypeString,
+							Example: jsontext.Value(`"foo"`),
+							Enum:    []jsontext.Value{jsontext.Value(`"foo"`)},
+						},
+						"foo", &openapi.Schema{
+							Type:    openapi.TypeBoolean,
+							Example: jsontext.Value("true"),
+						},
+					),
 				},
 			},
 			&openapi.Schema{
 				Type: openapi.TypeArray,
-				Items: &openapi.SchemaRef{
-					Value: &openapi.Schema{
-						Type: openapi.TypeObject,
-						Properties: props(
-							"type", &openapi.Schema{
-								Type:    openapi.TypeString,
-								Example: jsontext.Value(`"bar"`),
-							},
-							"bar", &openapi.Schema{
-								Type:    openapi.TypeBoolean,
-								Example: jsontext.Value("true"),
-							},
-						),
-					},
+				Items: &openapi.Schema{
+					Type: openapi.TypeObject,
+					Properties: props(
+						"type", &openapi.Schema{
+							Type:    openapi.TypeString,
+							Example: jsontext.Value(`"bar"`),
+						},
+						"bar", &openapi.Schema{
+							Type:    openapi.TypeBoolean,
+							Example: jsontext.Value("true"),
+						},
+					),
 				},
 			},
 			&openapi.Schema{
 				Type: openapi.TypeArray,
-				Items: &openapi.SchemaRef{
-					Value: &openapi.Schema{
-						Type: openapi.TypeObject,
-						Properties: props(
-							"type", &openapi.Schema{
-								Type:    openapi.TypeString,
-								Example: jsontext.Value(`"foo"`),
-								Enum: []jsontext.Value{
-									jsontext.Value(`"foo"`),
-									jsontext.Value(`"bar"`),
-								},
+				Items: &openapi.Schema{
+					Type: openapi.TypeObject,
+					Properties: props(
+						"type", &openapi.Schema{
+							Type:    openapi.TypeString,
+							Example: jsontext.Value(`"foo"`),
+							Enum: []jsontext.Value{
+								jsontext.Value(`"foo"`),
+								jsontext.Value(`"bar"`),
 							},
-							"foo", &openapi.Schema{
-								Type:    openapi.TypeBoolean,
-								Example: jsontext.Value("true"),
-							},
-							"bar", &openapi.Schema{
-								Type:    openapi.TypeBoolean,
-								Example: jsontext.Value("true"),
-							},
-						),
-					},
+						},
+						"foo", &openapi.Schema{
+							Type:    openapi.TypeBoolean,
+							Example: jsontext.Value("true"),
+						},
+						"bar", &openapi.Schema{
+							Type:    openapi.TypeBoolean,
+							Example: jsontext.Value("true"),
+						},
+					),
 				},
 			},
 		},
@@ -304,33 +285,27 @@ func TestSchema(t *testing.T) {
 				Format:      openapi.FormatURI,
 				Example:     jsontext.Value(`"https://www.example.com/"`),
 			},
-			&openapi.Schema{
-				Type:       openapi.TypeObject,
-				Properties: openapi.SchemaRefs{},
-				Example:    jsontext.Value("null"),
-			},
+			&openapi.Schema{Type: openapi.TypeNull},
 			&openapi.Schema{
 				Description: "a URL",
 				Type:        openapi.TypeString,
+				Nullable:    true,
 				Format:      openapi.FormatURI,
 				Example:     jsontext.Value(`"https://www.example.com/"`),
 			},
 		},
 		{
-			&openapi.Schema{
-				Type:       openapi.TypeObject,
-				Properties: openapi.SchemaRefs{},
-				Example:    jsontext.Value("null"),
-			},
+			&openapi.Schema{Type: openapi.TypeNull},
 			&openapi.Schema{
 				Type:    openapi.TypeString,
 				Format:  openapi.FormatURI,
 				Example: jsontext.Value(`"https://www.example.com/"`),
 			},
 			&openapi.Schema{
-				Type:    openapi.TypeString,
-				Format:  openapi.FormatURI,
-				Example: jsontext.Value(`"https://www.example.com/"`),
+				Type:     openapi.TypeString,
+				Nullable: true,
+				Format:   openapi.FormatURI,
+				Example:  jsontext.Value(`"https://www.example.com/"`),
 			},
 		},
 		{
@@ -350,19 +325,19 @@ func TestSchema(t *testing.T) {
 		},
 		{
 			&openapi.Schema{
-				AllOf: openapi.SchemaRefList{
-					&openapi.SchemaRef{Value: &openapi.Schema{
+				AllOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type: openapi.TypeObject,
 						Properties: props("foo", &openapi.Schema{
 							Type: openapi.TypeString,
 						}),
-					}},
-					&openapi.SchemaRef{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type: openapi.TypeObject,
 						Properties: props("bar", &openapi.Schema{
 							Type: openapi.TypeInteger,
 						}),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
@@ -372,37 +347,37 @@ func TestSchema(t *testing.T) {
 				}),
 			},
 			&openapi.Schema{
-				AllOf: openapi.SchemaRefList{
-					&openapi.SchemaRef{Value: &openapi.Schema{
+				AllOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type: openapi.TypeObject,
 						Properties: props("foo", &openapi.Schema{
 							Type: openapi.TypeString,
 						}),
-					}},
-					&openapi.SchemaRef{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type: openapi.TypeObject,
 						Properties: props("bar", &openapi.Schema{
 							Type: openapi.TypeInteger,
 						}),
-					}},
+					},
 				},
 			},
 		},
 		{
 			&openapi.Schema{
-				AllOf: openapi.SchemaRefList{
-					&openapi.SchemaRef{Value: &openapi.Schema{
+				AllOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type: openapi.TypeObject,
 						Properties: props("foo", &openapi.Schema{
 							Type: openapi.TypeString,
 						}),
-					}},
-					&openapi.SchemaRef{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type: openapi.TypeObject,
 						Properties: props("bar", &openapi.Schema{
 							Type: openapi.TypeInteger,
 						}),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
@@ -412,37 +387,37 @@ func TestSchema(t *testing.T) {
 				}),
 			},
 			&openapi.Schema{
-				AllOf: openapi.SchemaRefList{
-					&openapi.SchemaRef{Value: &openapi.Schema{
+				AllOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type: openapi.TypeObject,
 						Properties: props("foo", &openapi.Schema{
 							Type: openapi.TypeString,
 						}),
-					}},
-					&openapi.SchemaRef{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type: openapi.TypeObject,
 						Properties: props("bar", &openapi.Schema{
 							Type: openapi.TypeInteger,
 						}),
-					}},
+					},
 				},
 			},
 		},
 		{
 			&openapi.Schema{
-				AllOf: openapi.SchemaRefList{
-					&openapi.SchemaRef{Value: &openapi.Schema{
+				AllOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type: openapi.TypeObject,
 						Properties: props("foo", &openapi.Schema{
 							Type: openapi.TypeString,
 						}),
-					}},
-					&openapi.SchemaRef{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type: openapi.TypeObject,
 						Properties: props("bar", &openapi.Schema{
 							Type: openapi.TypeInteger,
 						}),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
@@ -452,25 +427,25 @@ func TestSchema(t *testing.T) {
 				}),
 			},
 			&openapi.Schema{
-				AllOf: openapi.SchemaRefList{
-					&openapi.SchemaRef{Value: &openapi.Schema{
+				AllOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type: openapi.TypeObject,
 						Properties: props("foo", &openapi.Schema{
 							Type: openapi.TypeString,
 						}),
-					}},
-					&openapi.SchemaRef{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type: openapi.TypeObject,
 						Properties: props("bar", &openapi.Schema{
 							Type: openapi.TypeInteger,
 						}),
-					}},
-					&openapi.SchemaRef{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type: openapi.TypeObject,
 						Properties: props("baz", &openapi.Schema{
 							Type: openapi.TypeBoolean,
 						}),
-					}},
+					},
 				},
 			},
 		},
@@ -501,16 +476,16 @@ func TestSchema(t *testing.T) {
 				Example: jsontext.Value(`1485487350827`),
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 		},
@@ -526,16 +501,16 @@ func TestSchema(t *testing.T) {
 				Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 		},
@@ -543,16 +518,16 @@ func TestSchema(t *testing.T) {
 		// oneOf (from a previous merge) must land in the matching alternative
 		{
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
@@ -563,32 +538,32 @@ func TestSchema(t *testing.T) {
 			},
 			&openapi.Schema{
 				Description: "when this happened",
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 		},
 		// same as above, but merging a plain integer timestamp
 		{
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
@@ -596,16 +571,16 @@ func TestSchema(t *testing.T) {
 				Example: jsontext.Value(`1620000000000`),
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 		},
@@ -618,29 +593,29 @@ func TestSchema(t *testing.T) {
 				Example: jsontext.Value(`"2026-05-07T01:14:57.371Z"`),
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 		},
@@ -651,29 +626,29 @@ func TestSchema(t *testing.T) {
 				Example: jsontext.Value(`1620000000000`),
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 		},
@@ -688,31 +663,31 @@ func TestSchema(t *testing.T) {
 				Example:     jsontext.Value(`"2026-05-07T01:14:57.371Z"`),
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
 				Title:       "Created At",
 				Description: "when this happened",
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 		},
@@ -721,30 +696,30 @@ func TestSchema(t *testing.T) {
 		// elsewhere) must be a no-op, not an error
 		{
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 		},
@@ -752,33 +727,30 @@ func TestSchema(t *testing.T) {
 		// example rather than one with no type set at all
 		{
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
+			&openapi.Schema{Type: openapi.TypeNull},
 			&openapi.Schema{
-				Type:    openapi.TypeObject,
-				Example: jsontext.Value(`null`),
-			},
-			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 		},
@@ -786,29 +758,29 @@ func TestSchema(t *testing.T) {
 		{
 			&openapi.Schema{},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 		},
@@ -818,42 +790,42 @@ func TestSchema(t *testing.T) {
 		// must be merged into the matching alternative of a
 		{
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-07T01:14:57.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1620000000000`),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 		},
@@ -861,85 +833,82 @@ func TestSchema(t *testing.T) {
 		// (e.g. running the enrichment twice over the same data) must not error
 		{
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 		},
-		// b's oneOf may itself contain a null-placeholder alternative
+		// b's oneOf may itself contain a null alternative
 		// (e.g. some of the samples that built it were null); that
 		// alternative must be skipped while the real one still merges
 		{
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
-						Type:    openapi.TypeObject,
-						Example: jsontext.Value(`null`),
-					}},
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{Type: openapi.TypeNull},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1620000000000`),
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:    openapi.TypeString,
 						Format:  openapi.FormatDateTime,
 						Example: jsontext.Value(`"2026-05-06T02:26:43.371Z"`),
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type:    openapi.TypeInteger,
 						Example: jsontext.Value(`1485487350827`),
-					}},
+					},
 				},
 			},
 		},
@@ -989,21 +958,21 @@ func TestSchema(t *testing.T) {
 		// fixed-shape tuple (e.g. a "state vector": id, then a coordinate).
 		{&openapi.Schema{
 			Type: openapi.TypeArray,
-			PrefixItems: openapi.SchemaRefList{
-				{Value: &openapi.Schema{Type: openapi.TypeString, Example: jsontext.Value(`"39de4f"`)}},
-				{Value: &openapi.Schema{Type: openapi.TypeNumber, Format: openapi.FormatDouble, Example: jsontext.Value(`2.36`)}},
+			PrefixItems: openapi.SchemaList{
+				&openapi.Schema{Type: openapi.TypeString, Example: jsontext.Value(`"39de4f"`)},
+				&openapi.Schema{Type: openapi.TypeNumber, Format: openapi.FormatDouble, Example: jsontext.Value(`2.36`)},
 			},
 		}, &openapi.Schema{
 			Type: openapi.TypeArray,
-			PrefixItems: openapi.SchemaRefList{
-				{Value: &openapi.Schema{Type: openapi.TypeString, Example: jsontext.Value(`"3c6444"`)}},
-				{Value: &openapi.Schema{Type: openapi.TypeNumber, Format: openapi.FormatDouble, Example: jsontext.Value(`5.12`)}},
+			PrefixItems: openapi.SchemaList{
+				&openapi.Schema{Type: openapi.TypeString, Example: jsontext.Value(`"3c6444"`)},
+				&openapi.Schema{Type: openapi.TypeNumber, Format: openapi.FormatDouble, Example: jsontext.Value(`5.12`)},
 			},
 		}, &openapi.Schema{
 			Type: openapi.TypeArray,
-			PrefixItems: openapi.SchemaRefList{
-				{Value: &openapi.Schema{Type: openapi.TypeString, Example: jsontext.Value(`"39de4f"`)}},
-				{Value: &openapi.Schema{Type: openapi.TypeNumber, Format: openapi.FormatDouble, Example: jsontext.Value(`2.36`)}},
+			PrefixItems: openapi.SchemaList{
+				&openapi.Schema{Type: openapi.TypeString, Example: jsontext.Value(`"39de4f"`)},
+				&openapi.Schema{Type: openapi.TypeNumber, Format: openapi.FormatDouble, Example: jsontext.Value(`2.36`)},
 			},
 		}},
 		// a tuple can't line up positionally against a different-length
@@ -1011,26 +980,26 @@ func TestSchema(t *testing.T) {
 		// kept as alternatives via oneOf rather than forced into one.
 		{&openapi.Schema{
 			Type: openapi.TypeArray,
-			PrefixItems: openapi.SchemaRefList{
-				{Value: &openapi.Schema{Type: openapi.TypeString}},
-				{Value: &openapi.Schema{Type: openapi.TypeInteger}},
+			PrefixItems: openapi.SchemaList{
+				&openapi.Schema{Type: openapi.TypeString},
+				&openapi.Schema{Type: openapi.TypeInteger},
 			},
 		}, &openapi.Schema{
 			Type:  openapi.TypeArray,
-			Items: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeBoolean}},
+			Items: &openapi.Schema{Type: openapi.TypeBoolean},
 		}, &openapi.Schema{
-			OneOf: openapi.SchemaRefList{
-				{Value: &openapi.Schema{
+			OneOf: openapi.SchemaList{
+				&openapi.Schema{
 					Type: openapi.TypeArray,
-					PrefixItems: openapi.SchemaRefList{
-						{Value: &openapi.Schema{Type: openapi.TypeString}},
-						{Value: &openapi.Schema{Type: openapi.TypeInteger}},
+					PrefixItems: openapi.SchemaList{
+						&openapi.Schema{Type: openapi.TypeString},
+						&openapi.Schema{Type: openapi.TypeInteger},
 					},
-				}},
-				{Value: &openapi.Schema{
+				},
+				&openapi.Schema{
 					Type:  openapi.TypeArray,
-					Items: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeBoolean}},
-				}},
+					Items: &openapi.Schema{Type: openapi.TypeBoolean},
+				},
 			},
 		}},
 	} {
@@ -1059,14 +1028,14 @@ func TestSchema_Error(t *testing.T) {
 		// {&openapi.Schema{}, nil, "schema b is nil"},
 		{
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:   openapi.TypeString,
 						Format: openapi.FormatDateTime,
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type: openapi.TypeInteger,
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
@@ -1080,14 +1049,14 @@ func TestSchema_Error(t *testing.T) {
 				Type: openapi.TypeBoolean,
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:   openapi.TypeString,
 						Format: openapi.FormatDateTime,
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type: openapi.TypeInteger,
-					}},
+					},
 				},
 			},
 			`oneOf: no branch matches type "boolean"`,
@@ -1096,24 +1065,24 @@ func TestSchema_Error(t *testing.T) {
 		// any branch of a's oneOf
 		{
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type:   openapi.TypeString,
 						Format: openapi.FormatDateTime,
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type: openapi.TypeInteger,
-					}},
+					},
 				},
 			},
 			&openapi.Schema{
-				OneOf: openapi.SchemaRefList{
-					{Value: &openapi.Schema{
+				OneOf: openapi.SchemaList{
+					&openapi.Schema{
 						Type: openapi.TypeBoolean,
-					}},
-					{Value: &openapi.Schema{
+					},
+					&openapi.Schema{
 						Type: openapi.TypeInteger,
-					}},
+					},
 				},
 			},
 			`oneOf[0].oneOf: no branch matches type "boolean"`,
@@ -1140,16 +1109,16 @@ func TestSchema_Error(t *testing.T) {
 		{
 			&openapi.Schema{
 				Type: openapi.TypeArray,
-				PrefixItems: openapi.SchemaRefList{
-					{Value: &openapi.Schema{Type: openapi.TypeString}},
-					{Value: &openapi.Schema{Type: openapi.TypeString}},
+				PrefixItems: openapi.SchemaList{
+					&openapi.Schema{Type: openapi.TypeString},
+					&openapi.Schema{Type: openapi.TypeString},
 				},
 			},
 			&openapi.Schema{
 				Type: openapi.TypeArray,
-				PrefixItems: openapi.SchemaRefList{
-					{Value: &openapi.Schema{Type: openapi.TypeString}},
-					{Value: &openapi.Schema{Type: openapi.TypeBoolean}},
+				PrefixItems: openapi.SchemaList{
+					&openapi.Schema{Type: openapi.TypeString},
+					&openapi.Schema{Type: openapi.TypeBoolean},
 				},
 			},
 			"prefixItems[1].type: \"string\" != \"boolean\"\n" +
@@ -1168,13 +1137,11 @@ func TestSchema_Error(t *testing.T) {
 	}
 }
 
-func props(keyVals ...any) openapi.SchemaRefs {
-	p := openapi.SchemaRefs{}
+func props(keyVals ...any) openapi.Schemas {
+	p := openapi.Schemas{}
 
 	for i := 0; i < len(keyVals); i = i + 2 {
-		p.Set(keyVals[i].(string), &openapi.SchemaRef{
-			Value: keyVals[i+1].(*openapi.Schema),
-		})
+		p.Set(keyVals[i].(string), keyVals[i+1].(*openapi.Schema))
 	}
 
 	return p
@@ -1186,7 +1153,7 @@ func TestSchema_AdditionalProperties(t *testing.T) {
 	allowed := &openapi.AdditionalProperties{Allowed: true}
 	forbidden := &openapi.AdditionalProperties{Allowed: false}
 	str := func() *openapi.AdditionalProperties {
-		return &openapi.AdditionalProperties{Schema: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeString}}}
+		return &openapi.AdditionalProperties{Schema: &openapi.Schema{Type: openapi.TypeString}}
 	}
 
 	for _, tc := range []struct {
@@ -1215,7 +1182,7 @@ func TestSchema_AdditionalProperties(t *testing.T) {
 
 			got := a.AdditionalProperties
 			if tc.wantMap {
-				if got == nil || got.Schema == nil || got.Schema.Value.Type != openapi.TypeString {
+				if got == nil || got.Schema == nil || got.Schema.Type != openapi.TypeString {
 					t.Fatalf("got %+v, want the string schema", got)
 				}
 

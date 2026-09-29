@@ -1,8 +1,12 @@
 Beyond combining properties and widening optionality, the merge handles the
 particular ways that sample-derived schemas disagree:
 
-- **Absent type information** — a value observed only as `null` carries no type, so
-  the other side's type and format are adopted rather than treated as a conflict.
+- **Null** — a value observed only as `null` has the type `null`. Merged with a
+  real type, the result is that type, made nullable (`["string", "null"]`), rather
+  than a conflict.
+- **Arrays only ever seen empty** — `{"type": "array", "maxItems": 0}` says nothing
+  about the items, so the other side's items are adopted, and item bounds widen to
+  cover both sides.
 - **Numeric widening** — an integer in one sample and a floating-point number in
   another merge to a number.
 - **Dates in two encodings** — a value seen as a date-time string in one sample and

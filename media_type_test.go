@@ -13,7 +13,7 @@ func TestMediaType(t *testing.T) {
 
 	a := &openapi.MediaType{}
 	b := &openapi.MediaType{
-		Schema:  &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeString}},
+		Schema:  &openapi.Schema{Type: openapi.TypeString},
 		Example: jsontext.Value(`"foo"`),
 	}
 
@@ -22,7 +22,7 @@ func TestMediaType(t *testing.T) {
 	}
 
 	// the result must land in a, the first argument
-	if got := a.Schema.Value.Type; got != openapi.TypeString {
+	if got := a.Schema.Type; got != openapi.TypeString {
 		t.Fatalf("expected type %q, got %q", openapi.TypeString, got)
 	}
 

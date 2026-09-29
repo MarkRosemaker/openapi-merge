@@ -12,12 +12,12 @@ func TestSchemaRefs(t *testing.T) {
 
 	// a starts out nil: merging must still make the new entry visible to the
 	// caller, even though maps are normally passed by value.
-	var a openapi.SchemaRefs
+	var a openapi.Schemas
 
-	sr := &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeString}}
-	b := openapi.SchemaRefs{"name": sr}
+	sr := &openapi.Schema{Type: openapi.TypeString}
+	b := openapi.Schemas{"name": sr}
 
-	if err := merge.SchemaRefs(&a, b); err != nil {
+	if err := merge.Schemas(&a, b); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -33,14 +33,10 @@ func TestSchemaRefs(t *testing.T) {
 func TestSchemaRefs_MergeExistingKey(t *testing.T) {
 	t.Parallel()
 
-	a := openapi.SchemaRefs{"name": &openapi.SchemaRef{
-		Value: &openapi.Schema{Type: openapi.TypeString},
-	}}
-	b := openapi.SchemaRefs{"name": &openapi.SchemaRef{
-		Value: &openapi.Schema{Type: openapi.TypeString},
-	}}
+	a := openapi.Schemas{"name": &openapi.Schema{Type: openapi.TypeString}}
+	b := openapi.Schemas{"name": &openapi.Schema{Type: openapi.TypeString}}
 
-	if err := merge.SchemaRefs(&a, b); err != nil {
+	if err := merge.Schemas(&a, b); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -48,7 +44,7 @@ func TestSchemaRefs_MergeExistingKey(t *testing.T) {
 		t.Fatalf("expected 1 entry, got %d", len(a))
 	}
 
-	if got := a["name"].Value.Type; got != openapi.TypeString {
+	if got := a["name"].Type; got != openapi.TypeString {
 		t.Fatalf("expected type %q, got %q", openapi.TypeString, got)
 	}
 }
