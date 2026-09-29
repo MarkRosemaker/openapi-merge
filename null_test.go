@@ -82,3 +82,37 @@ func TestSchema_NullAndArrayBounds(t *testing.T) {
 		})
 	}
 }
+
+func TestSchema_KeepsPropertyOrder(t *testing.T) {
+	t.Parallel()
+
+	object := func(when *openapi.Schema) *openapi.Schema {
+		s := &openapi.Schema{Type: openapi.TypeObject}
+		s.Properties.Set("when", when)
+		s.Properties.Set("second", &openapi.Schema{Type: openapi.TypeString})
+		s.Properties.Set("third", &openapi.Schema{Type: openapi.TypeString})
+
+		return s
+	}
+
+	// a date seen as a string and as a timestamp becomes a oneOf, which replaces the property's schema
+	a := object(&openapi.Schema{Type: openapi.TypeString, Format: openapi.FormatDateTime})
+	b := object(&openapi.Schema{Type: openapi.TypeInteger})
+
+	if err := merge.Schema(a, b, false); err != nil {
+		t.Fatal(err)
+	}
+
+	var order []string
+	for k := range a.Properties.ByIndex() {
+		order = append(order, k)
+	}
+
+	if want := []string{"when", "second", "third"}; !reflect.DeepEqual(order, want) {
+		t.Errorf("got %v, want %v", order, want)
+	}
+
+	if len(a.Properties["when"].OneOf) != 2 {
+		t.Errorf("when is not a oneOf: %+v", a.Properties["when"])
+	}
+}

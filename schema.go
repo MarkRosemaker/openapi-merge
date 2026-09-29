@@ -81,7 +81,7 @@ func mergeIfOneOf(a, b *openapi.Schema) (handled bool, err error) {
 			return true, err
 		}
 
-		*a = *b
+		a.Replace(b)
 
 		return true, nil
 	}
@@ -181,16 +181,16 @@ func reconcileTypeMismatch(a, b *openapi.Schema, tp openapi.DataType, isParam bo
 		return false, nil
 	case tp == openapi.TypeNumber && b.Type == openapi.TypeString && isInfinityExample(bJSON),
 		b.Type == openapi.TypeNumber && tp == openapi.TypeString && isZeroDoubleExample(bJSON):
-		*b = *a
+		b.Replace(a)
 		return true, nil
 	case b.Type == openapi.TypeNumber && tp == openapi.TypeString && isInfinityExample(aJSON):
-		*a = *b
+		a.Replace(b)
 		return true, nil
 	case a.Type == openapi.TypeNumber && b.Type == openapi.TypeInteger:
-		*b = *a
+		b.Replace(a)
 		return true, nil
 	case a.Type == openapi.TypeInteger && b.Type == openapi.TypeNumber:
-		*a = *b
+		a.Replace(b)
 		return true, nil
 	case isDateTimeString(a) && b.Type == openapi.TypeInteger,
 		isDateTimeString(b) && a.Type == openapi.TypeInteger:
@@ -200,7 +200,7 @@ func reconcileTypeMismatch(a, b *openapi.Schema, tp openapi.DataType, isParam bo
 		mergeDateTimeOrTimestamp(a, b)
 		return true, nil
 	case a.Type == openapi.TypeInteger && b.Type == openapi.TypeString:
-		*b = *a
+		b.Replace(a)
 		return true, nil
 	default:
 		return true, mismatchError("type", fmt.Errorf("%q != %q", tp, b.Type), a, b)
@@ -381,8 +381,8 @@ func mergeArrayShapeMismatch(a, b *openapi.Schema) {
 		},
 	}
 
-	*a = merged
-	*b = merged
+	a.Replace(&merged)
+	b.Replace(&merged)
 }
 
 // mergeObjectProperties merges b's properties into a's, either directly or,
@@ -520,7 +520,7 @@ func mergeArrayParamMismatch(a, b *openapi.Schema) error {
 			}
 		}
 
-		*b = *a
+		b.Replace(a)
 
 		return nil
 	}
@@ -536,7 +536,7 @@ func mergeArrayParamMismatch(a, b *openapi.Schema) error {
 		}
 	}
 
-	*a = *b
+	a.Replace(b)
 
 	return nil
 }
@@ -621,8 +621,8 @@ func mergeDateTimeOrTimestamp(a, b *openapi.Schema) {
 		},
 	}
 
-	*a = merged
-	*b = merged
+	a.Replace(&merged)
+	b.Replace(&merged)
 }
 
 // deref is the schema s stands for: the one it refers to, if it is a reference.
