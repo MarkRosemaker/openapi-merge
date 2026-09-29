@@ -17,7 +17,7 @@ func TestResponse(t *testing.T) {
 		Description: "the response",
 		Content: openapi.Content{
 			"application/json": &openapi.MediaType{
-				Schema: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeString}},
+				Schema: &openapi.Schema{Type: openapi.TypeString},
 			},
 		},
 	}
@@ -34,7 +34,7 @@ func TestResponse(t *testing.T) {
 		t.Fatalf("expected 1 content entry, got %d", len(a.Content))
 	}
 
-	if got := a.Content["application/json"].Schema.Value.Type; got != openapi.TypeString {
+	if got := a.Content["application/json"].Schema.Type; got != openapi.TypeString {
 		t.Fatalf("expected type %q, got %q", openapi.TypeString, got)
 	}
 }

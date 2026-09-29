@@ -14,9 +14,9 @@ func TestContent(t *testing.T) {
 	// caller, even though maps are normally passed by value.
 	var a openapi.Content
 
-	mt := &openapi.MediaType{Schema: &openapi.SchemaRef{Value: &openapi.Schema{
+	mt := &openapi.MediaType{Schema: &openapi.Schema{
 		Type: openapi.TypeString,
-	}}}
+	}}
 	b := openapi.Content{"application/json": mt}
 
 	if err := merge.Content(&a, b); err != nil {
@@ -36,10 +36,10 @@ func TestContent_MergeExistingKey(t *testing.T) {
 	t.Parallel()
 
 	a := openapi.Content{"application/json": &openapi.MediaType{
-		Schema: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeString}},
+		Schema: &openapi.Schema{Type: openapi.TypeString},
 	}}
 	b := openapi.Content{"application/json": &openapi.MediaType{
-		Schema: &openapi.SchemaRef{Value: &openapi.Schema{Type: openapi.TypeString}},
+		Schema: &openapi.Schema{Type: openapi.TypeString},
 	}}
 
 	if err := merge.Content(&a, b); err != nil {
@@ -50,7 +50,7 @@ func TestContent_MergeExistingKey(t *testing.T) {
 		t.Fatalf("expected 1 entry, got %d", len(a))
 	}
 
-	if got := a["application/json"].Schema.Value.Type; got != openapi.TypeString {
+	if got := a["application/json"].Schema.Type; got != openapi.TypeString {
 		t.Fatalf("expected type %q, got %q", openapi.TypeString, got)
 	}
 }
