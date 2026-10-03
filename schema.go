@@ -73,21 +73,17 @@ func Schema(a, b *openapi.Schema, isParam bool) error {
 func mergeIfOneOf(a, b *openapi.Schema) (handled bool, err error) {
 	// if a already represents multiple possible shapes, merge b into
 	// whichever alternative it matches
-	if len(a.OneOf) > 0 {
-		return true, mergeOneOf(a, b)
-	}
-
-	if len(a.AnyOf) > 0 {
-		return true, mergeAlternatives(a.AnyOf, "anyOf", b)
+	if alts, field := union(a); len(alts) > 0 {
+		return true, mergeAlternatives(alts, field, b)
 	}
 
 	// symmetric case: b is the one that already has multiple possible shapes.
 	// a's Title/Description were already merged into a above; carry that
 	// over to b, since b (not a) is about to become the authoritative result.
-	if len(b.OneOf) > 0 {
+	if alts, field := union(b); len(alts) > 0 {
 		b.Title, b.Description = a.Title, a.Description
 
-		if err := mergeOneOf(b, a); err != nil {
+		if err := mergeAlternatives(alts, field, a); err != nil {
 			return true, err
 		}
 
@@ -161,8 +157,13 @@ func reconcileNull(a, b *openapi.Schema, tp openapi.DataType) openapi.DataType {
 }
 
 // improveExample keeps a's example unless it has none, or has only "null"
-// where b's is a real value.
+// where b's is a real value. A const gets no example, which could only repeat
+// it; a one-value enum still does, since an enum grows from examples.
 func improveExample(a, b *openapi.Schema) {
+	if len(a.Const) > 0 {
+		return
+	}
+
 	if a.Example == nil || (string(a.Example) == null && b.Example != nil) {
 		a.Example = b.Example
 	}
@@ -551,6 +552,15 @@ func mergeArrayParamMismatch(a, b *openapi.Schema) error {
 	return nil
 }
 
+// union is the alternatives of s if it is a union, oneOf before anyOf, with the keyword that lists them.
+func union(s *openapi.Schema) (openapi.SchemaList, string) {
+	if len(s.OneOf) > 0 {
+		return s.OneOf, "oneOf"
+	}
+
+	return s.AnyOf, "anyOf"
+}
+
 // mergeOneOf merges b into the alternative of a.OneOf that matches it,
 // since a already represents a value that can take multiple shapes.
 func mergeOneOf(a, b *openapi.Schema) error {
@@ -561,13 +571,13 @@ func mergeOneOf(a, b *openapi.Schema) error {
 // [matchingAlternative] -- reporting errors under field, the keyword alts are
 // listed in.
 func mergeAlternatives(alts openapi.SchemaList, field string, b *openapi.Schema) error {
-	// b is itself a oneOf (e.g. built up from another, independent set of
+	// b is itself a union (e.g. built up from another, independent set of
 	// samples that happened to hit the same alternatives); merge each of its
 	// alternatives into a in turn rather than treating b as a single schema
-	if len(b.OneOf) > 0 {
-		for i, alt := range b.OneOf {
+	if bAlts, bField := union(b); len(bAlts) > 0 {
+		for i, alt := range bAlts {
 			if err := mergeAlternatives(alts, field, deref(alt)); err != nil {
-				return &errpath.ErrField{Field: "oneOf", Err: &errpath.ErrIndex{Index: i, Err: err}}
+				return &errpath.ErrField{Field: bField, Err: &errpath.ErrIndex{Index: i, Err: err}}
 			}
 		}
 
@@ -641,8 +651,9 @@ func matchingAlternative(alts openapi.SchemaList, b *openapi.Schema) (int, error
 	return -1, fmt.Errorf("no branch matches %s", strings.Join(got, ", "))
 }
 
-// matchAlternative is [matchingAlternative] for strings of the format anyFormat allows -- see [oneOfBranchMatches]
-// -- reporting whether one matches, and whether through its pinned properties. An alternative that is itself a union
+// matchAlternative is the search [matchingAlternative] makes, with anyFormat letting an alternative of strings
+// without a format take a string of any format -- see [oneOfBranchMatches]. It reports whether one matches, and
+// whether through its pinned properties. An alternative that is itself a union
 // matches as its own best alternative does. It adds the names of the pinned properties that did not match to
 // discriminators.
 func matchAlternative(
@@ -888,10 +899,12 @@ func mergeDateTimeOrTimestamp(a, b *openapi.Schema) {
 // deref is the schema s stands for: the one it refers to, if it is a reference, following a reference to a
 // reference too.
 func deref(s *openapi.Schema) *openapi.Schema {
-	seen := map[*openapi.Schema]bool{}
+	// a bound, not a record of where it has been, stops a cycle of references: deref is called for every schema
+	for range 64 {
+		if s == nil || s.Ref == nil || s.Ref.Value == nil {
+			break
+		}
 
-	for s != nil && s.Ref != nil && s.Ref.Value != nil && !seen[s] {
-		seen[s] = true
 		s = s.Ref.Value
 	}
 

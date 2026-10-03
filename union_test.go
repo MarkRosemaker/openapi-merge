@@ -154,3 +154,60 @@ func TestSchema_NoVariantMatches(t *testing.T) {
 		t.Errorf("got error %q, want %q", err, want)
 	}
 }
+
+func TestSchema_AnyOfOnEitherSide(t *testing.T) {
+	t.Parallel()
+
+	// a sample merged into a union routes the same whichever side the union is on
+	_, sel, union := variants()
+	b := &openapi.Schema{AnyOf: union}
+	a := object("type", sample("select"), "select", object("options", sample("x")))
+
+	if err := merge.Schema(a, b, false); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(a.AnyOf) != 2 {
+		t.Fatalf("the result is not the union, got %d alternatives", len(a.AnyOf))
+	}
+
+	if _, ok := sel.Properties["select"].Properties["options"]; !ok {
+		t.Error("the select variant did not get the recorded options")
+	}
+
+	// an anyOf merged into a union merges each of its alternatives
+	_, sel2, union2 := variants()
+	if err := merge.Schema(&openapi.Schema{OneOf: union2}, &openapi.Schema{AnyOf: openapi.SchemaList{
+		object("type", sample("select"), "select", object("color", sample("red"))),
+	}}, false); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, ok := sel2.Properties["select"].Properties["color"]; !ok {
+		t.Error("the select variant did not get the anyOf's alternative")
+	}
+}
+
+func TestSchema_NoExampleBesideConst(t *testing.T) {
+	t.Parallel()
+
+	_, sel, union := variants()
+
+	if err := merge.Schema(&openapi.Schema{OneOf: union}, object("type", sample("select"), "select", object()), false); err != nil {
+		t.Fatal(err)
+	}
+
+	if ex := sel.Properties["type"].Example; ex != nil {
+		t.Errorf("the pinned type got the example %s, which only repeats its const", ex)
+	}
+}
+
+func TestSchema_ReferenceCycle(t *testing.T) {
+	t.Parallel()
+
+	// a reference that leads back to itself ends rather than looping
+	loop := &openapi.Schema{}
+	loop.Ref = &openapi.SchemaRef{Identifier: "#/components/schemas/Loop", Value: loop}
+
+	_ = merge.Schema(&openapi.Schema{OneOf: openapi.SchemaList{loop}}, object(), false)
+}
