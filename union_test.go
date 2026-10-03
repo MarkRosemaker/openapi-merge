@@ -2,6 +2,7 @@ package merge_test
 
 import (
 	"encoding/json/jsontext"
+	"fmt"
 	"testing"
 
 	"github.com/MarkRosemaker/openapi"
@@ -210,4 +211,28 @@ func TestSchema_ReferenceCycle(t *testing.T) {
 	loop.Ref = &openapi.SchemaRef{Identifier: "#/components/schemas/Loop", Value: loop}
 
 	_ = merge.Schema(&openapi.Schema{OneOf: openapi.SchemaList{loop}}, object(), false)
+}
+
+// The values of a map are merged in the order they were recorded, so the example the map's value schema keeps is the
+// first one, every time.
+func TestSchema_MapValuesInOrder(t *testing.T) {
+	t.Parallel()
+
+	b := object()
+	for i := range 20 {
+		b.Properties.Set(fmt.Sprintf("key%d", i), sample(fmt.Sprintf("value%d", i)))
+	}
+
+	a := &openapi.Schema{
+		Type:                 openapi.TypeObject,
+		AdditionalProperties: &openapi.AdditionalProperties{Schema: &openapi.Schema{Type: openapi.TypeString}},
+	}
+
+	if err := merge.Schema(a, b, false); err != nil {
+		t.Fatal(err)
+	}
+
+	if got, want := string(a.AdditionalProperties.Schema.Example), `"value0"`; got != want {
+		t.Errorf("the value schema's example is %s, want %s", got, want)
+	}
 }
