@@ -236,3 +236,27 @@ func TestSchema_MapValuesInOrder(t *testing.T) {
 		t.Errorf("the value schema's example is %s, want %s", got, want)
 	}
 }
+
+// A partial object pins what the full one does, so the one that declares more of what was recorded is the match.
+func TestSchema_FullBeatsPartial(t *testing.T) {
+	t.Parallel()
+
+	partial := object("object", pinned("block"), "id", &openapi.Schema{Type: openapi.TypeString})
+	full := object("object", pinned("block"), "id", &openapi.Schema{Type: openapi.TypeString},
+		"has_children", &openapi.Schema{Type: openapi.TypeBoolean})
+	a := &openapi.Schema{AnyOf: openapi.SchemaList{refTo("PartialBlock", partial), refTo("Block", full)}}
+
+	b := object("object", sample("block"), "id", sample("abc"), "has_children", &openapi.Schema{Type: openapi.TypeBoolean},
+		"request_id", sample("def"))
+	if err := merge.Schema(a, b, false); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, ok := full.Properties["request_id"]; !ok {
+		t.Error("the full object did not get the recorded property")
+	}
+
+	if len(partial.Properties) != 2 {
+		t.Errorf("the partial object got what was recorded for the full one: %v", partial.Properties)
+	}
+}
