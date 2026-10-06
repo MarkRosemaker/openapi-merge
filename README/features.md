@@ -32,7 +32,11 @@ particular ways that sample-derived schemas disagree:
   take. Merged into a union, each sample goes into the branch it matches, so the
   elements of a list of mixed variants each reach their own; merged into a schema
   that is no union, each is merged into it in turn; merged into another union of
-  samples, they join it, for the caller to collapse.
+  samples, they join it, for the caller to collapse. Unlike `examples`, which
+  hold values and stay in the specification, it holds schemas inferred from
+  values and is only a working marker between the inference and the merge:
+  openapi-enrich routes or collapses every one, so none reaches a finished
+  specification.
 - **Common properties beside a union** — an `allOf` of objects and one union
   takes each sampled property into the part that declares it, and the rest into
   the branch the whole sample matches.
