@@ -42,6 +42,17 @@ func TestSchema_Required(t *testing.T) {
 				`{"type":"object","properties":{"object":{"type":"string","const":"database"},"id":{"type":"string"}},"required":["object","id"]},` +
 				`{"type":"object","properties":{"object":{"type":"string","const":"database"},"id":{"type":"string"},"title":{"type":"string"},"database_type":{"type":"string"}},"required":["object","id","title"]}]}`,
 		},
+		{
+			// split among an allOf's parts, a sample narrows each part only by what it leaves out
+			name: "parts of an allOf",
+			a: `{"allOf":[` +
+				`{"type":"object","required":["plain_text"],"properties":{"plain_text":{"type":"string"}}},` +
+				`{"oneOf":[{"type":"object","required":["type","text"],"properties":{"type":{"type":"string","const":"text"},"text":{"type":"string"}}}]}]}`,
+			b: `{"type":"object","required":["plain_text","type","text"],"properties":{"plain_text":{"type":"string"},"type":{"type":"string","example":"text"},"text":{"type":"string"}}}`,
+			want: `{"allOf":[` +
+				`{"type":"object","properties":{"plain_text":{"type":"string"}},"required":["plain_text"]},` +
+				`{"oneOf":[{"type":"object","properties":{"type":{"type":"string","const":"text"},"text":{"type":"string"}},"required":["type","text"]}]}]}`,
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
