@@ -59,6 +59,9 @@ particular ways that sample-derived schemas disagree:
 - **Dates in two encodings** — a value seen as a date-time string in one sample and
   as a Unix timestamp integer in another becomes a `oneOf` of the two, rather than
   one silently discarding the other.
+- **Dates with and without a time** — a value seen as a `date` in one sample and
+  as a `date-time` in another, as Notion's date `start` is, becomes a `oneOf` of
+  the two.
 - **Union routing** — when one side already covers several shapes, with `oneOf`
   or `anyOf`, the other is merged into whichever branch it matches. Of a tagged
   union's objects, the branch is the one whose pinned properties — a `const` or
