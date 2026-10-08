@@ -1,0 +1,2414 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Merges",
+    "description": "TestSchema_Golden merges, into the property a of each case, every schema of its prefixItems in turn, failing with x-error where it has one, and drops the merged ones: the document must then be after.json. The components without properties a are what the cases refer to. Edit both by hand.",
+    "version": "1"
+  },
+  "components": {
+    "schemas": {
+      "enum-takes-the-example": {
+        "description": "An empty enum takes the value of an example merged into it.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "example": "foo"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "enum": []
+          }
+        }
+      },
+      "enum-of-integers-takes-the-example": {
+        "description": "So does an enum of another type than string.",
+        "prefixItems": [
+          {
+            "type": "integer",
+            "example": 2
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "integer",
+            "enum": []
+          }
+        }
+      },
+      "enum-keeps-its-values-once": {
+        "description": "A value already in the enum is not added again.",
+        "prefixItems": [
+          {
+            "type": "boolean",
+            "example": true
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        }
+      },
+      "first-example-and-description-stay": {
+        "description": "a keeps its own description and example.",
+        "prefixItems": [
+          {
+            "type": "boolean",
+            "example": true
+          }
+        ],
+        "properties": {
+          "a": {
+            "description": "The archived status of the page.",
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "plain-string-and-uri": {
+        "description": "A string seen as text and as a URI.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "format": "uri",
+            "example": "https://www.example.com/"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "example": "some text"
+          }
+        }
+      },
+      "null-and-null": {
+        "description": "Null merged with null stays null.",
+        "prefixItems": [
+          {
+            "type": "null"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "null"
+          }
+        }
+      },
+      "nullable-is-kept": {
+        "description": "a that may be null still may.",
+        "prefixItems": [
+          {
+            "type": "string"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "nullable-is-adopted": {
+        "description": "b that may be null makes a so.",
+        "prefixItems": [
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string"
+          }
+        }
+      },
+      "null-makes-it-nullable": {
+        "description": "A value seen as null too may be null, and keeps its description.",
+        "prefixItems": [
+          {
+            "type": "null"
+          }
+        ],
+        "properties": {
+          "a": {
+            "description": "a URL",
+            "type": "string",
+            "format": "uri",
+            "example": "https://www.example.com/"
+          }
+        }
+      },
+      "null-first": {
+        "description": "The same with null seen first.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "format": "uri",
+            "example": "https://www.example.com/"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "null"
+          }
+        }
+      },
+      "null-and-an-array": {
+        "description": "An array seen as null too may be null, and keeps its items, without an example: no element was seen as null.",
+        "prefixItems": [
+          {
+            "type": "null"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "null-then-an-array": {
+        "description": "The same with null seen first: a takes the array.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "null"
+          }
+        }
+      },
+      "null-in-a-tuple-position": {
+        "description": "The same one level deeper, in a position of a tuple, as OpenSky's state vector has.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        }
+      },
+      "null-then-an-empty-array": {
+        "description": "An array seen as null and only ever empty.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "maxItems": 0
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "null"
+          }
+        }
+      },
+      "empty-then-with-items": {
+        "description": "An array seen empty, then with items, takes the items and drops the bound.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "array",
+            "maxItems": 0
+          }
+        }
+      },
+      "with-items-then-empty": {
+        "description": "The same the other way round.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "maxItems": 0
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "always-empty": {
+        "description": "An array only ever seen empty keeps maxItems 0.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "maxItems": 0
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "array",
+            "maxItems": 0
+          }
+        }
+      },
+      "bounds-widen": {
+        "description": "minItems and maxItems widen to hold both.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "items": {
+              "type": "string"
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 3,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "tuple-positions-merge": {
+        "description": "Tuples of one length merge position by position.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "example": "3c6444"
+              },
+              {
+                "type": "number",
+                "format": "double",
+                "example": 5.12
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "example": "39de4f"
+              },
+              {
+                "type": "number",
+                "format": "double",
+                "example": 2.36
+              }
+            ]
+          }
+        }
+      },
+      "tuple-positions-that-differ": {
+        "description": "A position that cannot merge is reported where it is.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "x-error": "prefixItems[1].type: \"string\" != \"boolean\"\na: {\"type\":\"string\"}\nb: {\"type\":\"boolean\"}"
+      },
+      "tuple-and-list": {
+        "description": "A tuple and a list cannot line up, so both are alternatives.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          }
+        }
+      },
+      "list-fitting-a-tuple": {
+        "description": "Pixellab's 3D keypoint: a recorded [x, y, z] is inferred as a list of numbers, as it keeps no length, and fits every position of the tuple.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number",
+                "x-go-name": "X"
+              },
+              {
+                "type": "number",
+                "x-go-name": "Y"
+              },
+              {
+                "type": "number",
+                "x-go-name": "Z"
+              }
+            ]
+          }
+        }
+      },
+      "lists-go-to-the-list": {
+        "description": "Each further list goes to the list, rather than nesting a union around the tuple every time.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          }
+        }
+      },
+      "tuple-of-another-length": {
+        "description": "A tuple of another length is an alternative of its own.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "boolean"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "infinity-stays-a-number": {
+        "description": "A value that overflowed to \"Infinity\", recorded as a string, keeps a's number type.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "example": "Infinity"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "number",
+            "format": "double",
+            "example": 42.5
+          }
+        }
+      },
+      "infinity-takes-the-number": {
+        "description": "The same the other way round: b's number wins.",
+        "prefixItems": [
+          {
+            "type": "number",
+            "format": "double",
+            "example": 99.9
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "example": "Infinity"
+          }
+        }
+      },
+      "zero-double-stays-a-string": {
+        "description": "A value recorded as exactly 0.0 says no more than that, so a keeps its string type.",
+        "prefixItems": [
+          {
+            "type": "number",
+            "format": "double",
+            "example": 0.0
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "example": "foo"
+          }
+        }
+      },
+      "date-time-or-timestamp": {
+        "description": "A date seen as a date-time string and as a unix timestamp is a oneOf of both.",
+        "prefixItems": [
+          {
+            "type": "integer",
+            "example": 1485487350827
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-05-06T02:26:43.371Z"
+          }
+        }
+      },
+      "timestamp-or-date-time": {
+        "description": "The same with the timestamp first.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-05-06T02:26:43.371Z"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "integer",
+            "example": 1485487350827
+          }
+        }
+      },
+      "date-as-integer": {
+        "description": "An integer with format date, merged with a plain integer.",
+        "prefixItems": [
+          {
+            "type": "integer"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "integer",
+            "format": "date"
+          }
+        }
+      },
+      "date-or-date-time": {
+        "description": "A date and a date-time are alternatives of their own, and further samples of either go to theirs.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-10-05T10:00:00Z"
+          },
+          {
+            "type": "string",
+            "format": "date",
+            "example": "2026-10-05"
+          },
+          {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-10-05T10:00:00Z"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-10-05"
+          }
+        }
+      },
+      "date-time-or-date": {
+        "description": "The same with the date-time first.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "format": "date",
+            "example": "2026-10-05"
+          },
+          {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-10-05T10:00:00Z"
+          },
+          {
+            "type": "string",
+            "format": "date",
+            "example": "2026-10-05"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-10-05T10:00:00Z"
+          }
+        }
+      },
+      "date-time-into-the-oneof": {
+        "description": "A date-time merged into the oneOf goes to its alternative.",
+        "prefixItems": [
+          {
+            "description": "when this happened",
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-05-07T01:14:57.371Z"
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "timestamp-into-the-oneof": {
+        "description": "So does a timestamp.",
+        "prefixItems": [
+          {
+            "type": "integer",
+            "example": 1620000000000
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "oneof-on-b": {
+        "description": "With the oneOf on b, the result is still a.",
+        "prefixItems": [
+          {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-05-07T01:14:57.371Z"
+          }
+        }
+      },
+      "timestamp-with-the-oneof-on-b": {
+        "description": "So with a timestamp.",
+        "prefixItems": [
+          {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "integer",
+            "example": 1620000000000
+          }
+        }
+      },
+      "title-and-description-survive": {
+        "description": "a's title and description stay when b's oneOf becomes the result.",
+        "prefixItems": [
+          {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "title": "Created At",
+            "description": "when this happened",
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-05-07T01:14:57.371Z"
+          }
+        }
+      },
+      "nothing-into-the-oneof": {
+        "description": "A schema saying nothing changes nothing, as merging the same samples again would.",
+        "prefixItems": [
+          {}
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "nothing-with-the-oneof-on-b": {
+        "description": "The same with the oneOf on b.",
+        "prefixItems": [
+          {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {}
+        }
+      },
+      "null-into-the-oneof": {
+        "description": "A null makes the oneOf nullable.",
+        "prefixItems": [
+          {
+            "type": "null"
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "oneof-into-oneof": {
+        "description": "Two oneOfs of the same alternatives merge alternative by alternative.",
+        "prefixItems": [
+          {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-07T01:14:57.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1620000000000
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "oneof-into-itself": {
+        "description": "Merging a oneOf into itself, as enriching twice over the same data does, changes nothing.",
+        "prefixItems": [
+          {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "null-alternative-in-b": {
+        "description": "A null alternative of b's makes the result nullable, and the others go to theirs.",
+        "prefixItems": [
+          {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "example": 1620000000000
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "property-keeps-its-place": {
+        "description": "A property that becomes a oneOf keeps its place.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "when": {
+                "type": "integer"
+              },
+              "second": {
+                "type": "string"
+              },
+              "third": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object",
+            "properties": {
+              "when": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "second": {
+                "type": "string"
+              },
+              "third": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "items-of-different-objects": {
+        "description": "Array items that are objects of different shapes.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "bar"
+                },
+                "bar": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "foo"
+                  ],
+                  "example": "foo"
+                },
+                "foo": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "rich-text-of-another-type": {
+        "description": "Notion's rich text, seen as text and as a mention.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "example": "mention"
+              }
+            },
+            "required": [
+              "type",
+              "mention",
+              "annotations",
+              "plain_text",
+              "href"
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "text"
+                ],
+                "example": "text"
+              },
+              "text": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "example": "This is a simple paragraph."
+                  },
+                  "link": {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://www.example.com/"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "content",
+                  "link"
+                ],
+                "example": {
+                  "content": "This is a simple paragraph.",
+                  "link": null
+                }
+              }
+            },
+            "example": {
+              "type": "text",
+              "text": {
+                "content": "This is a simple paragraph.",
+                "link": null
+              },
+              "annotations": {
+                "bold": false,
+                "italic": false,
+                "strikethrough": false,
+                "underline": false,
+                "code": false,
+                "color": "default"
+              },
+              "plain_text": "This is a simple paragraph.",
+              "href": null
+            }
+          }
+        }
+      },
+      "allof-part-declaring-the-property": {
+        "description": "A property goes to the allOf part that declares it.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "bar": {
+                "type": "integer"
+              }
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "foo": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "bar": {
+                    "type": "integer"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "allof-first-part": {
+        "description": "So to the first part.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "foo": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "foo": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "bar": {
+                    "type": "integer"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "allof-property-no-part-declares": {
+        "description": "A property no part declares.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "baz": {
+                "type": "boolean"
+              }
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "foo": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "bar": {
+                    "type": "integer"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "only-what-both-require": {
+        "description": "A value without a member makes it optional; one b requires but a does not stays optional.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "nick": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "nick"
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ]
+          }
+        }
+      },
+      "alternative-declaring-the-member": {
+        "description": "Notion's filter forms pin nothing: the one declaring the sample's member takes it, not the first.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "and": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "and"
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "or": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "or"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "and": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "and"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "fuller-alternative-made-optional": {
+        "description": "Notion's database lacks database_type, which the full form requires: it is still the full form, which no longer requires it.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "object": {
+                "type": "string",
+                "example": "database"
+              },
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "object",
+              "id",
+              "title"
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "object": {
+                    "type": "string",
+                    "const": "database"
+                  },
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "object",
+                  "id"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "object": {
+                    "type": "string",
+                    "const": "database"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "database_type": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "object",
+                  "id",
+                  "title",
+                  "database_type"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "required-in-allof-parts": {
+        "description": "Split among an allOf's parts, a sample narrows each part only by what it leaves out.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "plain_text": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "example": "text"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "plain_text",
+              "type",
+              "text"
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "plain_text": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "plain_text"
+                ]
+              },
+              {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "text"
+                      },
+                      "text": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "text"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "additional-properties-both-absent": {
+        "description": "additionalProperties absent on both stays absent.",
+        "prefixItems": [
+          {
+            "type": "object"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object"
+          }
+        }
+      },
+      "additional-properties-absent-and-false": {
+        "description": "Absent says nothing, so false stays.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "additionalProperties": false
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object"
+          }
+        }
+      },
+      "additional-properties-true-and-absent": {
+        "description": "The same the other way round, with true.",
+        "prefixItems": [
+          {
+            "type": "object"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "additional-properties-false-and-false": {
+        "description": "False and false stay false.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "additionalProperties": false
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        }
+      },
+      "additional-properties-false-and-true": {
+        "description": "True beats false.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "additionalProperties": true
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        }
+      },
+      "additional-properties-true-and-false": {
+        "description": "The same the other way round.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "additionalProperties": false
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "additional-properties-false-and-a-schema": {
+        "description": "A schema beats a boolean.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        }
+      },
+      "additional-properties-schema-and-true": {
+        "description": "The same the other way round.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "additionalProperties": true
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additional-properties-schemas": {
+        "description": "Two schemas merge.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "map-values-in-order": {
+        "description": "The values of a map merge in the order they were recorded, so the value schema keeps the first example, every time.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "key0": {
+                "type": "string",
+                "example": "value0"
+              },
+              "key1": {
+                "type": "string",
+                "example": "value1"
+              },
+              "key2": {
+                "type": "string",
+                "example": "value2"
+              },
+              "key3": {
+                "type": "string",
+                "example": "value3"
+              },
+              "key4": {
+                "type": "string",
+                "example": "value4"
+              },
+              "key5": {
+                "type": "string",
+                "example": "value5"
+              },
+              "key6": {
+                "type": "string",
+                "example": "value6"
+              },
+              "key7": {
+                "type": "string",
+                "example": "value7"
+              },
+              "key8": {
+                "type": "string",
+                "example": "value8"
+              },
+              "key9": {
+                "type": "string",
+                "example": "value9"
+              },
+              "key10": {
+                "type": "string",
+                "example": "value10"
+              },
+              "key11": {
+                "type": "string",
+                "example": "value11"
+              },
+              "key12": {
+                "type": "string",
+                "example": "value12"
+              },
+              "key13": {
+                "type": "string",
+                "example": "value13"
+              },
+              "key14": {
+                "type": "string",
+                "example": "value14"
+              },
+              "key15": {
+                "type": "string",
+                "example": "value15"
+              },
+              "key16": {
+                "type": "string",
+                "example": "value16"
+              },
+              "key17": {
+                "type": "string",
+                "example": "value17"
+              },
+              "key18": {
+                "type": "string",
+                "example": "value18"
+              },
+              "key19": {
+                "type": "string",
+                "example": "value19"
+              }
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "samples-into-their-alternatives": {
+        "description": "Merged as one, the two samples would hold both members and match neither alternative; each goes to the one it matches.",
+        "prefixItems": [
+          {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "example": "paragraph"
+                  },
+                  "paragraph": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "example": "heading"
+                  },
+                  "heading": {
+                    "type": "string"
+                  }
+                }
+              }
+            ],
+            "x-samples": true
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "paragraph"
+                  },
+                  "paragraph": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "heading"
+                  },
+                  "heading": {
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "samples-into-no-union": {
+        "description": "Into a schema that is no union, each sample is merged in turn.",
+        "prefixItems": [
+          {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "example": "paragraph"
+                  },
+                  "paragraph": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "example": "heading"
+                  },
+                  "heading": {
+                    "type": "string"
+                  }
+                }
+              }
+            ],
+            "x-samples": true
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "samples-join-samples": {
+        "description": "Samples are no alternatives to route among: more of them join the union, for the caller to collapse.",
+        "prefixItems": [
+          {
+            "anyOf": [
+              {
+                "type": "integer"
+              }
+            ],
+            "x-samples": true
+          },
+          {
+            "type": "boolean"
+          }
+        ],
+        "properties": {
+          "a": {
+            "anyOf": [
+              {
+                "type": "string"
+              }
+            ],
+            "x-samples": true
+          }
+        }
+      },
+      "union-by-pinned-value": {
+        "description": "A value goes to the alternative whose pinned member it has, and the other keeps its own.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "example": "select"
+              },
+              "select": {
+                "type": "object",
+                "properties": {
+                  "options": {
+                    "type": "string",
+                    "example": "x"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PinnedNumber"
+              },
+              {
+                "$ref": "#/components/schemas/PinnedSelect"
+              }
+            ]
+          }
+        }
+      },
+      "union-in-allof": {
+        "description": "Of an allOf of a common part and a union, the part takes what it declares, the alternative what no part does.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "abc"
+              },
+              "name": {
+                "type": "string",
+                "example": "Tags"
+              },
+              "type": {
+                "type": "string",
+                "example": "select"
+              },
+              "select": {
+                "type": "object"
+              }
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Common"
+              },
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CommonNumber"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CommonSelect"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "anyof-of-unions": {
+        "description": "An anyOf of unions routes to the alternative inside; a reference to a reference stands for what the last refers to.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "object": {
+                "type": "string",
+                "example": "data_source"
+              },
+              "is_inline": {
+                "type": "boolean"
+              }
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Page"
+                  }
+                ]
+              },
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/DataSourceAlias"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "integer-into-number": {
+        "description": "An integer is a number, so it goes to the number alternative.",
+        "prefixItems": [
+          {
+            "type": "integer",
+            "example": 3
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "uri-into-string": {
+        "description": "A string without a format takes any.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "format": "uri"
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "no-alternative-matches": {
+        "description": "A value no alternative pins fails.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "example": "rollup"
+              }
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RollupNumber"
+              },
+              {
+                "$ref": "#/components/schemas/RollupSelect"
+              }
+            ]
+          }
+        },
+        "x-error": "oneOf: no branch matches type: \"rollup\""
+      },
+      "anyof-on-b": {
+        "description": "A sample routes the same with the union on b, and the result is the union.",
+        "prefixItems": [
+          {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EitherNumber"
+              },
+              {
+                "$ref": "#/components/schemas/EitherSelect"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "example": "select"
+              },
+              "select": {
+                "type": "object",
+                "properties": {
+                  "options": {
+                    "type": "string",
+                    "example": "x"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "anyof-into-union": {
+        "description": "An anyOf merged into a union merges each of its alternatives.",
+        "prefixItems": [
+          {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "example": "select"
+                  },
+                  "select": {
+                    "type": "object",
+                    "properties": {
+                      "color": {
+                        "type": "string",
+                        "example": "red"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AnyNumber"
+              },
+              {
+                "$ref": "#/components/schemas/AnySelect"
+              }
+            ]
+          }
+        }
+      },
+      "full-beats-partial": {
+        "description": "A partial object pins what the full one does, so the one declaring more of what was recorded takes it.",
+        "prefixItems": [
+          {
+            "type": "object",
+            "properties": {
+              "object": {
+                "type": "string",
+                "example": "block"
+              },
+              "id": {
+                "type": "string",
+                "example": "abc"
+              },
+              "has_children": {
+                "type": "boolean"
+              },
+              "request_id": {
+                "type": "string",
+                "example": "def"
+              }
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PartialBlock"
+              },
+              {
+                "$ref": "#/components/schemas/Block"
+              }
+            ]
+          }
+        }
+      },
+      "no-alternative-of-the-type": {
+        "description": "A type no alternative has fails.",
+        "prefixItems": [
+          {
+            "type": "boolean"
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          }
+        },
+        "x-error": "oneOf: no branch matches type \"boolean\""
+      },
+      "no-alternative-of-the-type-on-b": {
+        "description": "The same with the oneOf on b.",
+        "prefixItems": [
+          {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "boolean"
+          }
+        },
+        "x-error": "oneOf: no branch matches type \"boolean\""
+      },
+      "alternative-of-b-matching-none": {
+        "description": "b's alternative that matches none of a's fails, at its index.",
+        "prefixItems": [
+          {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          }
+        },
+        "x-error": "oneOf[0].oneOf: no branch matches type \"boolean\""
+      },
+      "types-that-differ": {
+        "description": "Types that cannot be reconciled fail, showing both schemas.",
+        "prefixItems": [
+          {
+            "type": "boolean"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "object"
+          }
+        },
+        "x-error": "type: \"object\" != \"boolean\"\na: {\"type\":\"object\"}\nb: {\"type\":\"boolean\"}"
+      },
+      "formats-that-differ": {
+        "description": "So do formats.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "format": "uri"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "x-error": "format: \"email\" != \"uri\"\na: {\"type\":\"string\",\"format\":\"email\"}\nb: {\"type\":\"string\",\"format\":\"uri\"}"
+      },
+      "PinnedNumber": {
+        "description": "A number property.",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "number"
+          },
+          "number": {
+            "type": "object"
+          }
+        }
+      },
+      "PinnedSelect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "select"
+          },
+          "select": {
+            "type": "object"
+          }
+        }
+      },
+      "Common": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "CommonNumber": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "number"
+          },
+          "number": {
+            "type": "object"
+          }
+        }
+      },
+      "CommonSelect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "select"
+          },
+          "select": {
+            "type": "object"
+          }
+        }
+      },
+      "Page": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "const": "page"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "DataSourceAlias": {
+        "$ref": "#/components/schemas/DataSource"
+      },
+      "DataSource": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "const": "data_source"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "RollupNumber": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "number"
+          },
+          "number": {
+            "type": "object"
+          }
+        }
+      },
+      "RollupSelect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "select"
+          },
+          "select": {
+            "type": "object"
+          }
+        }
+      },
+      "EitherNumber": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "number"
+          },
+          "number": {
+            "type": "object"
+          }
+        }
+      },
+      "EitherSelect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "select"
+          },
+          "select": {
+            "type": "object"
+          }
+        }
+      },
+      "AnyNumber": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "number"
+          },
+          "number": {
+            "type": "object"
+          }
+        }
+      },
+      "AnySelect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "select"
+          },
+          "select": {
+            "type": "object"
+          }
+        }
+      },
+      "PartialBlock": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "const": "block"
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "Block": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "const": "block"
+          },
+          "id": {
+            "type": "string"
+          },
+          "has_children": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

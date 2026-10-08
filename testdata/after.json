@@ -1,0 +1,1547 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Merges",
+    "description": "TestSchema_Golden merges, into the property a of each case, every schema of its prefixItems in turn, failing with x-error where it has one, and drops the merged ones: the document must then be after.json. The components without properties a are what the cases refer to. Edit both by hand.",
+    "version": "1"
+  },
+  "components": {
+    "schemas": {
+      "enum-takes-the-example": {
+        "description": "An empty enum takes the value of an example merged into it.",
+        "properties": {
+          "a": {
+            "type": "string",
+            "enum": [
+              "foo"
+            ],
+            "example": "foo"
+          }
+        }
+      },
+      "enum-of-integers-takes-the-example": {
+        "description": "So does an enum of another type than string.",
+        "properties": {
+          "a": {
+            "type": "integer",
+            "enum": [
+              2
+            ],
+            "example": 2
+          }
+        }
+      },
+      "enum-keeps-its-values-once": {
+        "description": "A value already in the enum is not added again.",
+        "properties": {
+          "a": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "example": true
+          }
+        }
+      },
+      "first-example-and-description-stay": {
+        "description": "a keeps its own description and example.",
+        "properties": {
+          "a": {
+            "description": "The archived status of the page.",
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "plain-string-and-uri": {
+        "description": "A string seen as text and as a URI.",
+        "properties": {
+          "a": {
+            "type": "string",
+            "example": "some text"
+          }
+        }
+      },
+      "null-and-null": {
+        "description": "Null merged with null stays null.",
+        "properties": {
+          "a": {
+            "type": "null"
+          }
+        }
+      },
+      "nullable-is-kept": {
+        "description": "a that may be null still may.",
+        "properties": {
+          "a": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "nullable-is-adopted": {
+        "description": "b that may be null makes a so.",
+        "properties": {
+          "a": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "null-makes-it-nullable": {
+        "description": "A value seen as null too may be null, and keeps its description.",
+        "properties": {
+          "a": {
+            "description": "a URL",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "example": "https://www.example.com/"
+          }
+        }
+      },
+      "null-first": {
+        "description": "The same with null seen first.",
+        "properties": {
+          "a": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "example": "https://www.example.com/"
+          }
+        }
+      },
+      "null-and-an-array": {
+        "description": "An array seen as null too may be null, and keeps its items, without an example: no element was seen as null.",
+        "properties": {
+          "a": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "null-then-an-array": {
+        "description": "The same with null seen first: a takes the array.",
+        "properties": {
+          "a": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "null-in-a-tuple-position": {
+        "description": "The same one level deeper, in a position of a tuple, as OpenSky's state vector has.",
+        "properties": {
+          "a": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "integer"
+                }
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        }
+      },
+      "null-then-an-empty-array": {
+        "description": "An array seen as null and only ever empty.",
+        "properties": {
+          "a": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "maxItems": 0
+          }
+        }
+      },
+      "empty-then-with-items": {
+        "description": "An array seen empty, then with items, takes the items and drops the bound.",
+        "properties": {
+          "a": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "with-items-then-empty": {
+        "description": "The same the other way round.",
+        "properties": {
+          "a": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "always-empty": {
+        "description": "An array only ever seen empty keeps maxItems 0.",
+        "properties": {
+          "a": {
+            "type": "array",
+            "maxItems": 0
+          }
+        }
+      },
+      "bounds-widen": {
+        "description": "minItems and maxItems widen to hold both.",
+        "properties": {
+          "a": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "tuple-positions-merge": {
+        "description": "Tuples of one length merge position by position.",
+        "properties": {
+          "a": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "example": "39de4f"
+              },
+              {
+                "type": "number",
+                "format": "double",
+                "example": 2.36
+              }
+            ]
+          }
+        }
+      },
+      "tuple-and-list": {
+        "description": "A tuple and a list cannot line up, so both are alternatives.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "boolean"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "list-fitting-a-tuple": {
+        "description": "Pixellab's 3D keypoint: a recorded [x, y, z] is inferred as a list of numbers, as it keeps no length, and fits every position of the tuple.",
+        "properties": {
+          "a": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number",
+                "format": "double",
+                "x-go-name": "X"
+              },
+              {
+                "type": "number",
+                "format": "double",
+                "x-go-name": "Y"
+              },
+              {
+                "type": "number",
+                "format": "double",
+                "x-go-name": "Z"
+              }
+            ]
+          }
+        }
+      },
+      "lists-go-to-the-list": {
+        "description": "Each further list goes to the list, rather than nesting a union around the tuple every time.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "boolean"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "tuple-of-another-length": {
+        "description": "A tuple of another length is an alternative of its own.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "boolean"
+                }
+              },
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "infinity-stays-a-number": {
+        "description": "A value that overflowed to \"Infinity\", recorded as a string, keeps a's number type.",
+        "properties": {
+          "a": {
+            "type": "number",
+            "format": "double",
+            "example": 42.5
+          }
+        }
+      },
+      "infinity-takes-the-number": {
+        "description": "The same the other way round: b's number wins.",
+        "properties": {
+          "a": {
+            "type": "number",
+            "format": "double",
+            "example": 99.9
+          }
+        }
+      },
+      "zero-double-stays-a-string": {
+        "description": "A value recorded as exactly 0.0 says no more than that, so a keeps its string type.",
+        "properties": {
+          "a": {
+            "type": "string",
+            "example": "foo"
+          }
+        }
+      },
+      "date-time-or-timestamp": {
+        "description": "A date seen as a date-time string and as a unix timestamp is a oneOf of both.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "timestamp-or-date-time": {
+        "description": "The same with the timestamp first.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "date-as-integer": {
+        "description": "An integer with format date, merged with a plain integer.",
+        "properties": {
+          "a": {
+            "type": "integer",
+            "format": "date"
+          }
+        }
+      },
+      "date-or-date-time": {
+        "description": "A date and a date-time are alternatives of their own, and further samples of either go to theirs.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "example": "2026-10-05"
+              },
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-10-05T10:00:00Z"
+              }
+            ]
+          }
+        }
+      },
+      "date-time-or-date": {
+        "description": "The same with the date-time first.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "example": "2026-10-05"
+              },
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-10-05T10:00:00Z"
+              }
+            ]
+          }
+        }
+      },
+      "date-time-into-the-oneof": {
+        "description": "A date-time merged into the oneOf goes to its alternative.",
+        "properties": {
+          "a": {
+            "description": "when this happened",
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "timestamp-into-the-oneof": {
+        "description": "So does a timestamp.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "oneof-on-b": {
+        "description": "With the oneOf on b, the result is still a.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "timestamp-with-the-oneof-on-b": {
+        "description": "So with a timestamp.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "title-and-description-survive": {
+        "description": "a's title and description stay when b's oneOf becomes the result.",
+        "properties": {
+          "a": {
+            "title": "Created At",
+            "description": "when this happened",
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "nothing-into-the-oneof": {
+        "description": "A schema saying nothing changes nothing, as merging the same samples again would.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "nothing-with-the-oneof-on-b": {
+        "description": "The same with the oneOf on b.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "null-into-the-oneof": {
+        "description": "A null makes the oneOf nullable.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "oneof-into-oneof": {
+        "description": "Two oneOfs of the same alternatives merge alternative by alternative.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "oneof-into-itself": {
+        "description": "Merging a oneOf into itself, as enriching twice over the same data does, changes nothing.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "null-alternative-in-b": {
+        "description": "A null alternative of b's makes the result nullable, and the others go to theirs.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-05-06T02:26:43.371Z"
+              },
+              {
+                "type": "integer",
+                "example": 1485487350827
+              }
+            ]
+          }
+        }
+      },
+      "property-keeps-its-place": {
+        "description": "A property that becomes a oneOf keeps its place.",
+        "properties": {
+          "a": {
+            "type": "object",
+            "properties": {
+              "when": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "second": {
+                "type": "string"
+              },
+              "third": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "items-of-different-objects": {
+        "description": "Array items that are objects of different shapes.",
+        "properties": {
+          "a": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "foo",
+                    "bar"
+                  ],
+                  "example": "foo"
+                },
+                "foo": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "bar": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "rich-text-of-another-type": {
+        "description": "Notion's rich text, seen as text and as a mention.",
+        "properties": {
+          "a": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "text",
+                  "mention"
+                ],
+                "example": "text"
+              },
+              "text": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "example": "This is a simple paragraph."
+                  },
+                  "link": {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://www.example.com/"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "content",
+                  "link"
+                ],
+                "example": {
+                  "content": "This is a simple paragraph.",
+                  "link": null
+                }
+              }
+            },
+            "example": {
+              "type": "text",
+              "text": {
+                "content": "This is a simple paragraph.",
+                "link": null
+              },
+              "annotations": {
+                "bold": false,
+                "italic": false,
+                "strikethrough": false,
+                "underline": false,
+                "code": false,
+                "color": "default"
+              },
+              "plain_text": "This is a simple paragraph.",
+              "href": null
+            }
+          }
+        }
+      },
+      "allof-part-declaring-the-property": {
+        "description": "A property goes to the allOf part that declares it.",
+        "properties": {
+          "a": {
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "foo": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "bar": {
+                    "type": "integer"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "allof-first-part": {
+        "description": "So to the first part.",
+        "properties": {
+          "a": {
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "foo": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "bar": {
+                    "type": "integer"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "allof-property-no-part-declares": {
+        "description": "A property no part declares.",
+        "properties": {
+          "a": {
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "foo": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "bar": {
+                    "type": "integer"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "baz": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "only-what-both-require": {
+        "description": "A value without a member makes it optional; one b requires but a does not stays optional.",
+        "properties": {
+          "a": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "nick": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        }
+      },
+      "alternative-declaring-the-member": {
+        "description": "Notion's filter forms pin nothing: the one declaring the sample's member takes it, not the first.",
+        "properties": {
+          "a": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "or": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "or"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "and": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "and"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "fuller-alternative-made-optional": {
+        "description": "Notion's database lacks database_type, which the full form requires: it is still the full form, which no longer requires it.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "object": {
+                    "type": "string",
+                    "const": "database"
+                  },
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "object",
+                  "id"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "object": {
+                    "type": "string",
+                    "const": "database"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "database_type": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "object",
+                  "id",
+                  "title"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "required-in-allof-parts": {
+        "description": "Split among an allOf's parts, a sample narrows each part only by what it leaves out.",
+        "properties": {
+          "a": {
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "plain_text": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "plain_text"
+                ]
+              },
+              {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "text"
+                      },
+                      "text": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "text"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "additional-properties-both-absent": {
+        "description": "additionalProperties absent on both stays absent.",
+        "properties": {
+          "a": {
+            "type": "object"
+          }
+        }
+      },
+      "additional-properties-absent-and-false": {
+        "description": "Absent says nothing, so false stays.",
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        }
+      },
+      "additional-properties-true-and-absent": {
+        "description": "The same the other way round, with true.",
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "additional-properties-false-and-false": {
+        "description": "False and false stay false.",
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        }
+      },
+      "additional-properties-false-and-true": {
+        "description": "True beats false.",
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "additional-properties-true-and-false": {
+        "description": "The same the other way round.",
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "additional-properties-false-and-a-schema": {
+        "description": "A schema beats a boolean.",
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additional-properties-schema-and-true": {
+        "description": "The same the other way round.",
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additional-properties-schemas": {
+        "description": "Two schemas merge.",
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "map-values-in-order": {
+        "description": "The values of a map merge in the order they were recorded, so the value schema keeps the first example, every time.",
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "example": "value0"
+            }
+          }
+        }
+      },
+      "samples-into-their-alternatives": {
+        "description": "Merged as one, the two samples would hold both members and match neither alternative; each goes to the one it matches.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "paragraph"
+                  },
+                  "paragraph": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "heading"
+                  },
+                  "heading": {
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "samples-into-no-union": {
+        "description": "Into a schema that is no union, each sample is merged in turn.",
+        "properties": {
+          "a": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "example": "paragraph"
+              },
+              "paragraph": {
+                "type": "string"
+              },
+              "heading": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "samples-join-samples": {
+        "description": "Samples are no alternatives to route among: more of them join the union, for the caller to collapse.",
+        "properties": {
+          "a": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ],
+            "x-samples": true
+          }
+        }
+      },
+      "union-by-pinned-value": {
+        "description": "A value goes to the alternative whose pinned member it has, and the other keeps its own.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PinnedNumber"
+              },
+              {
+                "$ref": "#/components/schemas/PinnedSelect"
+              }
+            ]
+          }
+        }
+      },
+      "union-in-allof": {
+        "description": "Of an allOf of a common part and a union, the part takes what it declares, the alternative what no part does.",
+        "properties": {
+          "a": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Common"
+              },
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CommonNumber"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CommonSelect"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "anyof-of-unions": {
+        "description": "An anyOf of unions routes to the alternative inside; a reference to a reference stands for what the last refers to.",
+        "properties": {
+          "a": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Page"
+                  }
+                ]
+              },
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/DataSourceAlias"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "integer-into-number": {
+        "description": "An integer is a number, so it goes to the number alternative.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "number",
+                "example": 3
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "uri-into-string": {
+        "description": "A string without a format takes any.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "anyof-on-b": {
+        "description": "A sample routes the same with the union on b, and the result is the union.",
+        "properties": {
+          "a": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EitherNumber"
+              },
+              {
+                "$ref": "#/components/schemas/EitherSelect"
+              }
+            ]
+          }
+        }
+      },
+      "anyof-into-union": {
+        "description": "An anyOf merged into a union merges each of its alternatives.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AnyNumber"
+              },
+              {
+                "$ref": "#/components/schemas/AnySelect"
+              }
+            ]
+          }
+        }
+      },
+      "full-beats-partial": {
+        "description": "A partial object pins what the full one does, so the one declaring more of what was recorded takes it.",
+        "properties": {
+          "a": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PartialBlock"
+              },
+              {
+                "$ref": "#/components/schemas/Block"
+              }
+            ]
+          }
+        }
+      },
+      "PinnedNumber": {
+        "description": "A number property.",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "number"
+          },
+          "number": {
+            "type": "object"
+          }
+        }
+      },
+      "PinnedSelect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "select"
+          },
+          "select": {
+            "type": "object",
+            "properties": {
+              "options": {
+                "type": "string",
+                "example": "x"
+              }
+            }
+          }
+        }
+      },
+      "Common": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "abc"
+          }
+        }
+      },
+      "CommonNumber": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "number"
+          },
+          "number": {
+            "type": "object"
+          }
+        }
+      },
+      "CommonSelect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "select"
+          },
+          "select": {
+            "type": "object"
+          },
+          "name": {
+            "type": "string",
+            "example": "Tags"
+          }
+        }
+      },
+      "Page": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "const": "page"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "DataSourceAlias": {
+        "$ref": "#/components/schemas/DataSource"
+      },
+      "DataSource": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "const": "data_source"
+          },
+          "title": {
+            "type": "string"
+          },
+          "is_inline": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RollupNumber": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "number"
+          },
+          "number": {
+            "type": "object"
+          }
+        }
+      },
+      "RollupSelect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "select"
+          },
+          "select": {
+            "type": "object"
+          }
+        }
+      },
+      "EitherNumber": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "number"
+          },
+          "number": {
+            "type": "object"
+          }
+        }
+      },
+      "EitherSelect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "select"
+          },
+          "select": {
+            "type": "object",
+            "properties": {
+              "options": {
+                "type": "string",
+                "example": "x"
+              }
+            }
+          }
+        }
+      },
+      "AnyNumber": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "number"
+          },
+          "number": {
+            "type": "object"
+          }
+        }
+      },
+      "AnySelect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "select"
+          },
+          "select": {
+            "type": "object",
+            "properties": {
+              "color": {
+                "type": "string",
+                "example": "red"
+              }
+            }
+          }
+        }
+      },
+      "PartialBlock": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "const": "block"
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "Block": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "const": "block"
+          },
+          "id": {
+            "type": "string",
+            "example": "abc"
+          },
+          "has_children": {
+            "type": "boolean"
+          },
+          "request_id": {
+            "type": "string",
+            "example": "def"
+          }
+        }
+      }
+    }
+  }
+}
