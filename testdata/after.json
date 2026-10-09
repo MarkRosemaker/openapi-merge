@@ -1619,6 +1619,97 @@
             ]
           }
         }
+      },
+      "nested-union-form": {
+        "description": "Notion's filter is a compound one or a property filter, itself a union: a property filter recorded without its optional type goes to the form it fits inside that union, not to the compound one.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "or": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "or"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "property": {
+                        "type": "string",
+                        "example": "x"
+                      },
+                      "type": {
+                        "type": "string",
+                        "const": "select"
+                      },
+                      "select": {
+                        "type": "object",
+                        "properties": {
+                          "equals": {
+                            "type": "string",
+                            "example": "a"
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "property",
+                      "select"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "property": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "const": "number"
+                      },
+                      "number": {
+                        "type": "object",
+                        "properties": {
+                          "equals": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "property",
+                      "number"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "documented-item-bounds": {
+        "description": "A recorded array does not count its items, so the bounds the specification documents stand; one seen empty only allows no minimum.",
+        "properties": {
+          "a": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "example": "a"
+            }
+          }
+        }
       }
     }
   }
