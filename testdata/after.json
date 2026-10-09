@@ -1541,6 +1541,84 @@
             "example": "def"
           }
         }
+      },
+      "boolean-const-in-union": {
+        "description": "Notion's workspace owner pins workspace to true. A recorded boolean carries no value to compare, so its type agreeing is enough; type still tells the branches apart.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "user"
+                  },
+                  "user": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "workspace"
+                  },
+                  "workspace": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "absent-optional-const": {
+        "description": "Notion's property filter may leave out its optional type: lacking it does not rule the branch out, and the filter is not taken for the compound one, which requires or.",
+        "properties": {
+          "a": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "or": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "or"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "property": {
+                    "type": "string",
+                    "example": "x"
+                  },
+                  "type": {
+                    "type": "string",
+                    "const": "select"
+                  },
+                  "select": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "property",
+                  "select"
+                ]
+              }
+            ]
+          }
+        }
       }
     }
   }
