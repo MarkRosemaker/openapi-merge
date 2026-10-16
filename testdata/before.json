@@ -2650,6 +2650,66 @@
             "maxItems": 100
           }
         }
+      },
+      "integer-keeps-its-format": {
+        "description": "A sample without a format says nothing of the width: a keeps its int64.",
+        "prefixItems": [
+          {
+            "type": "integer",
+            "example": 5
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "integer-takes-a-format": {
+        "description": "Nor does a: it takes the sample's.",
+        "prefixItems": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "example": 5
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "integer"
+          }
+        }
+      },
+      "int32-widens-to-int64": {
+        "description": "int32 meets int64: the wider stays.",
+        "prefixItems": [
+          {
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "int32-widens-for-an-example": {
+        "description": "An example that does not fit 32 bits makes an int32 an int64.",
+        "prefixItems": [
+          {
+            "type": "integer",
+            "example": 5000000000
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
       }
     }
   }
