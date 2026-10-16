@@ -1710,6 +1710,45 @@
             }
           }
         }
+      },
+      "integer-keeps-its-format": {
+        "description": "A sample without a format says nothing of the width: a keeps its int64.",
+        "properties": {
+          "a": {
+            "type": "integer",
+            "format": "int64",
+            "example": 5
+          }
+        }
+      },
+      "integer-takes-a-format": {
+        "description": "Nor does a: it takes the sample's.",
+        "properties": {
+          "a": {
+            "type": "integer",
+            "format": "int64",
+            "example": 5
+          }
+        }
+      },
+      "int32-widens-to-int64": {
+        "description": "int32 meets int64: the wider stays.",
+        "properties": {
+          "a": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "int32-widens-for-an-example": {
+        "description": "An example that does not fit 32 bits makes an int32 an int64.",
+        "properties": {
+          "a": {
+            "type": "integer",
+            "format": "int64",
+            "example": 5000000000
+          }
+        }
       }
     }
   }
