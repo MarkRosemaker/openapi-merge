@@ -2710,6 +2710,57 @@
             "format": "int32"
           }
         }
+      },
+      "numeric-string-or-number": {
+        "description": "A number sent as a string, \"9.5\", and now and then as a number, 0.0, is a oneOf of both; a later string merges into its own alternative.",
+        "prefixItems": [
+          {
+            "type": "number",
+            "format": "double",
+            "example": 0.0
+          },
+          {
+            "type": "string",
+            "example": "52"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "example": "9.5"
+          }
+        }
+      },
+      "number-or-numeric-string": {
+        "description": "The same the other way round: the string comes first.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "example": "9.5"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "number",
+            "format": "double",
+            "example": 0.0
+          }
+        }
+      },
+      "numeric-string-or-integer": {
+        "description": "An integer beside a numeric string is a number, as the strings may hold fractions.",
+        "prefixItems": [
+          {
+            "type": "integer",
+            "example": 0
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "example": "52"
+          }
+        }
       }
     }
   }
