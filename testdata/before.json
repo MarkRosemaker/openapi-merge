@@ -2761,6 +2761,38 @@
             "example": "52"
           }
         }
+      },
+      "date-basic-stays": {
+        "description": "A date in ISO 8601's basic form, a format no sample is recorded with, stays where the sample's value fits it.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "example": "20260101"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "format": "date-basic",
+            "example": "20260320"
+          }
+        }
+      },
+      "date-basic-goes-for-another-value": {
+        "description": "A value that is no such date says the format does not hold.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "example": "none"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "format": "date-basic",
+            "example": "20260320"
+          }
+        }
       }
     }
   }
