@@ -2793,6 +2793,38 @@
             "example": "20260320"
           }
         }
+      },
+      "date-stays-for-empty-string": {
+        "description": "An empty string is a date left out, which a client reads as the zero date: the format stays.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "example": ""
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "format": "date",
+            "example": "1999-10-15"
+          }
+        }
+      },
+      "empty-string-takes-date-time": {
+        "description": "The same with the empty string first, which gives way to the date-time's example.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "example": "1999-10-15T10:00:00Z"
+          }
+        ],
+        "properties": {
+          "a": {
+            "type": "string",
+            "example": ""
+          }
+        }
       }
     }
   }
