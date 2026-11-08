@@ -270,6 +270,12 @@ func reconcileTypeMismatch(a, b *openapi.Schema, tp openapi.DataType, isParam bo
 	case a.Type == openapi.TypeInteger && b.Type == openapi.TypeString:
 		b.Replace(a)
 		return true, nil
+	case a.Type == openapi.TypeObject && b.Type == openapi.TypeArray,
+		a.Type == openapi.TypeArray && b.Type == openapi.TypeObject:
+		// a value seen as an object in one sample and as an array in another, as a job's images, one per direction
+		// or a list of frames, is either
+		mergeObjectOrArray(a, b)
+		return true, nil
 	default:
 		return true, mismatchError("type", fmt.Errorf("%q != %q", tp, b.Type), a, b)
 	}
@@ -1303,6 +1309,22 @@ func mergeDateTimeOrTimestamp(a, b *openapi.Schema) {
 			&intCopy,
 		},
 	}
+
+	a.Replace(&merged)
+	b.Replace(&merged)
+}
+
+// mergeObjectOrArray makes a and b a oneOf of an object and an array, the object first, storing the result in both.
+func mergeObjectOrArray(a, b *openapi.Schema) {
+	obj, arr := *a, *b
+	if a.Type == openapi.TypeArray {
+		obj, arr = *b, *a
+	}
+
+	obj.Title, obj.Description = "", ""
+	arr.Title, arr.Description = "", ""
+
+	merged := openapi.Schema{Title: a.Title, Description: a.Description, OneOf: openapi.SchemaList{&obj, &arr}}
 
 	a.Replace(&merged)
 	b.Replace(&merged)
