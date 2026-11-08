@@ -49,6 +49,7 @@ func Schema(a, b *openapi.Schema, isParam bool) error {
 	}
 
 	tp = reconcileNull(a, b, tp)
+	adoptFormat(a, b)
 	improveExample(a, b)
 
 	if tp != b.Type {
@@ -326,6 +327,27 @@ func fitsDateBasic(v jsontext.Value) bool {
 	_, err := time.Parse("20060102", str)
 
 	return err == nil
+}
+
+// adoptFormat gives a string that says nothing of its values, as an upstream specification writes most, the format of
+// the one it is merged with, such as the uuid of a recorded ID: without a format, an example, an enum or a const, it
+// has nothing against it. It runs before a takes b's example, which would make it seem to say something.
+func adoptFormat(a, b *openapi.Schema) {
+	if a.Type != openapi.TypeString || b.Type != openapi.TypeString {
+		return
+	}
+
+	switch {
+	case isBareString(a) && b.Format != "":
+		a.Format = b.Format
+	case isBareString(b) && a.Format != "":
+		b.Format = a.Format
+	}
+}
+
+// isBareString reports whether s, a string, says nothing of its values.
+func isBareString(s *openapi.Schema) bool {
+	return s.Format == "" && s.Example == nil && len(s.Enum) == 0 && len(s.Const) == 0
 }
 
 // isEmptyString reports whether v is the empty string.
