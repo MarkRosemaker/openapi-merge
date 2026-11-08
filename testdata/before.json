@@ -1965,7 +1965,7 @@
         }
       },
       "uri-into-string": {
-        "description": "A string without a format takes any.",
+        "description": "A string without a format takes any, and its format with it, since it says nothing against one.",
         "prefixItems": [
           {
             "type": "string",
@@ -2791,6 +2791,55 @@
             "type": "string",
             "format": "date-basic",
             "example": "20260320"
+          }
+        }
+      },
+      "object-or-array": {
+        "description": "A value seen as an object in one sample and as an array in another is a oneOf of both, and a further sample goes to the alternative of its type.",
+        "prefixItems": [
+          {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "frame"
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "east": {
+                "type": "string",
+                "example": "east"
+              }
+            }
+          }
+        ],
+        "properties": {
+          "a": {
+            "description": "The images.",
+            "type": "object",
+            "properties": {
+              "south": {
+                "type": "string",
+                "example": "south"
+              }
+            }
+          }
+        }
+      },
+      "bare-string-takes-the-format": {
+        "description": "A string an upstream specification declares without a format or an example takes the recorded value's.",
+        "prefixItems": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "properties": {
+          "a": {
+            "description": "Unique character identifier",
+            "type": "string"
           }
         }
       },

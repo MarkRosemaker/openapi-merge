@@ -1269,12 +1269,13 @@
         }
       },
       "uri-into-string": {
-        "description": "A string without a format takes any.",
+        "description": "A string without a format takes any, and its format with it, since it says nothing against one.",
         "properties": {
           "a": {
             "oneOf": [
               {
-                "type": "string"
+                "type": "string",
+                "format": "uri"
               },
               {
                 "type": "null"
@@ -1820,6 +1821,47 @@
           "a": {
             "type": "string",
             "example": "20260320"
+          }
+        }
+      },
+      "object-or-array": {
+        "description": "A value seen as an object in one sample and as an array in another is a oneOf of both, and a further sample goes to the alternative of its type.",
+        "properties": {
+          "a": {
+            "description": "The images.",
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "south": {
+                    "type": "string",
+                    "example": "south"
+                  },
+                  "east": {
+                    "type": "string",
+                    "example": "east"
+                  }
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "example": "frame"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "bare-string-takes-the-format": {
+        "description": "A string an upstream specification declares without a format or an example takes the recorded value's.",
+        "properties": {
+          "a": {
+            "description": "Unique character identifier",
+            "type": "string",
+            "format": "uuid",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
           }
         }
       },
