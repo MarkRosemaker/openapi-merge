@@ -1269,13 +1269,12 @@
         }
       },
       "uri-into-string": {
-        "description": "A string without a format takes any, and its format with it, since it says nothing against one.",
+        "description": "A string without a format takes any value, and keeps no format: the other side's would claim it of every value.",
         "properties": {
           "a": {
             "oneOf": [
               {
-                "type": "string",
-                "format": "uri"
+                "type": "string"
               },
               {
                 "type": "null"
@@ -1854,13 +1853,12 @@
           }
         }
       },
-      "bare-string-takes-the-format": {
-        "description": "A string an upstream specification declares without a format or an example takes the recorded value's.",
+      "bare-string-keeps-no-format": {
+        "description": "A string an upstream specification declares without a format keeps none, whatever the recorded value's: one value cannot say what every value is, and a client would reject those it does not fit.",
         "properties": {
           "a": {
             "description": "Unique character identifier",
             "type": "string",
-            "format": "uuid",
             "example": "123e4567-e89b-12d3-a456-426614174000"
           }
         }
