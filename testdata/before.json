@@ -1965,7 +1965,7 @@
         }
       },
       "uri-into-string": {
-        "description": "A string without a format takes any, and its format with it, since it says nothing against one.",
+        "description": "A string without a format takes any value, and keeps no format: the other side's would claim it of every value.",
         "prefixItems": [
           {
             "type": "string",
@@ -2827,8 +2827,8 @@
           }
         }
       },
-      "bare-string-takes-the-format": {
-        "description": "A string an upstream specification declares without a format or an example takes the recorded value's.",
+      "bare-string-keeps-no-format": {
+        "description": "A string an upstream specification declares without a format keeps none, whatever the recorded value's: one value cannot say what every value is, and a client would reject those it does not fit.",
         "prefixItems": [
           {
             "type": "string",
